@@ -18,7 +18,7 @@
 #  sshpass
 #  jq
 #
-#  Created by Peter Bryzgalov on 2014/02/03
+#  Created by Peter Bryzgalov on 2014/02/05
 #  Copyright (C) 2014 RIKEN AICS.
 
 # Initialization
@@ -31,7 +31,7 @@ fi
 
 public_key_file=$2
 username=$1
-user_table_file="/usertable.txt"
+user_table_file="/var/usertable.txt"
 
 userExists() {
     awk -F":" '{ print $1 }' /etc/passwd | grep -x $1 > /dev/null
@@ -97,6 +97,7 @@ ssh="sshpass -p \"docker\" ssh -o StrictHostKeyChecking=no -p $port root@localho
 
 echo "Contacting container with $ssh"
 eval "$ssh mkdir ~/.ssh"
+# Copy public key to the container
 pub_key=`cat $public_key_file`
 eval "$ssh 'echo $pub_key >> ~/.ssh/authorized_keys'"
 
@@ -107,6 +108,9 @@ sshpass -p "docker" scp -P $port stop.sh root@localhost:/
 sshpass -p "docker" scp -P $port stopnow.sh root@localhost:/
 sshpass -p "docker" scp -P $port nostop.sh root@localhost:/
 eval "$ssh 'ls -l /'"
+
+# Disable password login
+eval "$ssh 'sed -r -i \"s/^.*PasswordAuthentication[yesno ]+$/PasswordAuthentication no/\" /etc/ssh/sshd_config'"
 
 docker kill $username
 echo "Created continer $username ($cont)"

@@ -2,14 +2,14 @@
 # Start container if it's not running.
 # Stop container (if started) when extra processes inside the container quit.
 #
-# Created by Bryzgalov Peter on 2014/01/31
+# Created by Bryzgalov Peter on 2014/02/05
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="1.46"
+version="1.47"
 
 log_file="/docker.log"
 dockercommand="docker -H localhost:4243"
-user_table_file="/usertable.txt"
+user_table_file="/var/usertable.txt"
 
 sacred_proc="sshd: root@"
 

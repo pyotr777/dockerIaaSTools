@@ -7,15 +7,16 @@
 #  Parameters:
 #  user name
 #
-#  Created by Peter Bryzgalov on 2014/01/23
+#  Created by Peter Bryzgalov on 2014/02/05
 #  Copyright (C) 2014 RIKEN AICS.
 
 usr=$1
+user_table_file="/var/usertable.txt"
 
 echo "Removing user $usr"
 deluser --remove-home $usr
 docker kill $usr
 docker rm $usr
 
-# remove record from /usertable.txt
-sed -r -i "/$usr(\s+)$usr$/d" /usertable.txt
+# remove record from user_table_file
+sed -r -i "/$usr(\s+)$usr$/d" $user_table_file
