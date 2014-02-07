@@ -1,0 +1,41 @@
+Docker containers service
+
+* Files *
+
+** clean_containers.py
+
+Clean network settings (virtual interfaces, etc.) created by start_containers_iptabes.py
+
+*** Calls:
+	dockerlib.py
+	iptablesclean.sh
+
+
+** cleanuser.sh
+
+Removes user on the server and removes users's containers.
+
+
+** createuser.sh
+
+Creates user on the server and creates user's container, set up the server and container for automatic user login to container with SSH key. 
+
+*** Arguments:
+	user name
+	public key file
+	
+*** Requires:
+	sshpass
+	jq
+
+
+** docker.sh
+
+Is called every time Docker user logs in with SSH to server.
+docker.sh starts user's container if it is stopped.
+Executes user's commands in the container.
+
+
+** iptablesclean.sh
+
+Cleans iptables records related to container with name in command-line argument.

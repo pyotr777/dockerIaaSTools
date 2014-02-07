@@ -18,7 +18,8 @@ def confirm(message):
         else:
             sys.stdout.write("Only 'y' or 'n':")
             
-
+# Remove virtual networking interfaces
+# created by ip.sh for for assigning external IP addresses to Docker containers
 def removeInterfaces(cont_names):
     for cont in cont_names:
         # do=confirm("Remove "+cont+"?")

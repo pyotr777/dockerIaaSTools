@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Gives IP to Docker containers.
+# Creates virtual network interface for assigning
+# external IP address to Docker container.
 #
 # Created by Bryzgalov Peter on 2013/11/18.
 # Copyright (c) 2013 Riken AICS. All rights reserved.
