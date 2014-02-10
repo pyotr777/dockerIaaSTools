@@ -1,19 +1,12 @@
-Docker containers service
+Docker containers as a service tools
 
 * Files *
-
-** clean_containers.py
-
-Clean network settings (virtual interfaces, etc.) created by start_containers_iptabes.py
-
-*** Calls:
-	dockerlib.py
-	iptablesclean.sh
 
 
 ** cleanuser.sh
 
 Removes user on the server and removes users's containers.
+
 
 
 ** createuser.sh
@@ -29,6 +22,7 @@ Creates user on the server and creates user's container, set up the server and c
 	jq
 
 
+
 ** docker.sh
 
 Is called every time Docker user logs in with SSH to server.
@@ -36,6 +30,24 @@ docker.sh starts user's container if it is stopped.
 Executes user's commands in the container.
 
 
-** iptablesclean.sh
 
-Cleans iptables records related to container with name in command-line argument.
+** dockerwatch.sh
+
+Called by docker.sh to stop container in due time.
+
+
+
+** nostop.sh
+
+Command to be run inside a container to prevent dockerwatch from stopping the container.
+
+
+
+** stop.sh
+
+Command to be run inside a container to set the container to be stopped after ssh session is closed.
+
+
+** stopnow.sh
+
+Command to be run inside a container to stop the container immediately.
