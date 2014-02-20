@@ -7,11 +7,14 @@
 # Created by Bryzgalov Peter on 2014/02/19
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.11"
+version="2.21"
 
 log_file="/docker.log"
 dockercommand="docker -H localhost:4243"
 user_table_file="/var/usertable.txt"
+# Counter file inside container
+counter_file="/tmp/connection_counter"
+
 
 if [ ! -w $log_file ];
 then
@@ -55,7 +58,7 @@ then
     sshcommand="ssh -p $PORT -A -o StrictHostKeyChecking=no root@localhost"
     echo "started container with open port $PORT" >> $log_file
 
-    eval "$sshcommand"
+    eval "$sshcommand" 2>> $log_file
 fi
 
 # get running container port number
@@ -77,5 +80,20 @@ else
 fi
 eval "$sshcommand \"$commands\"" 2>> $log_file
 
+# After exit from container
+
+# Decrement connection counter
+eval "$sshcommand \"/synchro_decrement.sh $counter_file\"" 2>> $log_file
+
+# Start dockerwatch.sh
+echo "Starting dockerwatch" >> $log_file
+/dockerwatch.sh >> $dockerwatch_log  2>&1 &
+
+COUNTER=$(exec "$sshcommand \"/synchro_read.sh $counter_file\"") 2>> $log_file
+echo "Exit at $COUNTER" >> $log_file
 echo "<" $(date) >> $log_file
 echo "-----------------------" >> $log_file
+
+
+echo "<" $(date) >> $log_file
+echo " " >> $log_file

@@ -14,9 +14,9 @@ usr=$1
 user_table_file="/var/usertable.txt"
 
 echo "Removing user $usr"
-deluser --remove-home $usr
 docker kill $usr
 docker rm $usr
+deluser --remove-home $usr
 
 # remove record from user_table_file
 sed -r -i "/$usr(\s+)$usr$/d" $user_table_file

@@ -21,7 +21,7 @@
 #  Created by Peter Bryzgalov on 2014/02/20
 #  Copyright (C) 2014 RIKEN AICS.
 
-version="2.05"
+version="2.20"
 # Initialization
 
 echo "createuser.sh $version"
@@ -75,7 +75,7 @@ ssh="sshpass -p \"docker\" ssh -o StrictHostKeyChecking=no -p $port root@localho
 
 echo "Contacting container with $ssh"
 # test SSH
-ssherr=$(eval $ssh 2>&1 > /dev/null)
+ssherr=$(eval "$ssh ls" 2>&1 > /dev/null)
 if [[ "$ssherr" == *WARNING* ]]
 then
     clean_command="ssh-keygen -f \"/root/.ssh/known_hosts\" -R [localhost]:$port"
@@ -124,6 +124,9 @@ sshpass -p "docker" scp -P $port container.sh root@localhost:/
 sshpass -p "docker" scp -P $port stop.sh root@localhost:/
 sshpass -p "docker" scp -P $port stopnow.sh root@localhost:/
 sshpass -p "docker" scp -P $port nostop.sh root@localhost:/
+sshpass -p "docker" scp -P $port synchro_decrement.sh root@localhost:/
+sshpass -p "docker" scp -P $port synchro_increment.sh root@localhost:/
+sshpass -p "docker" scp -P $port synchro_read.sh root@localhost:/
 eval "$ssh 'ls -l /'"
 
 # Disable password login
