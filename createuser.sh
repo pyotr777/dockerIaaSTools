@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #  Creates user with designated key, creates Docker container with user name.
 #  Makes set up for automatic user login to the container
@@ -7,7 +7,7 @@
 #  Parameters:
 #  user name,
 #  file with public SSH key,
-#  Docker image name to use for container (optional, default = peter/ssh).
+#  Docker image name to use for container.
 #
 #  User and container names are stored in user tabel file (/usertable.txt).
 #
@@ -18,10 +18,13 @@
 #  sshpass
 #  jq
 #
-#  Created by Peter Bryzgalov on 2014/02/05
+#  Created by Peter Bryzgalov on 2014/02/20
 #  Copyright (C) 2014 RIKEN AICS.
 
+version="2.05"
 # Initialization
+
+echo "createuser.sh $version"
 
 if [ $# -lt 1 ]
 then
@@ -29,8 +32,9 @@ then
     exit 0
 fi
 
-public_key_file=$2
 username=$1
+public_key_file=$2
+image=$3
 user_table_file="/var/usertable.txt"
 
 userExists() {
@@ -51,6 +55,34 @@ then
     exit 1
 fi
 
+
+# Register user and conatiner names in user table file
+echo "$username $username" >> $user_table_file
+
+
+# Create container with SSH service runnning
+cont=$(docker run -d -name $username -p 22 $image /usr/sbin/sshd -D)
+echo "Container: $cont"
+if [ -z "$cont" ]
+then
+    echo "ERROR: Could not create container."
+    exit 1
+fi
+
+port=$(docker inspect $cont | jq .[0].NetworkSettings.Ports | jq '.["22/tcp"]' | jq -r .[0].HostPort)
+
+ssh="sshpass -p \"docker\" ssh -o StrictHostKeyChecking=no -p $port root@localhost"
+
+echo "Contacting container with $ssh"
+# test SSH
+ssherr=$(eval $ssh 2>&1 > /dev/null)
+if [[ "$ssherr" == *WARNING* ]]
+then
+    clean_command="ssh-keygen -f \"/root/.ssh/known_hosts\" -R [localhost]:$port"
+    echo "Clean known_hosts: $clean_command"
+    eval $clean_command
+fi
+
 echo "Creating user $username with public key in $public_key_file"
 
 if [ -z $3 ]
@@ -65,8 +97,8 @@ echo "Using image $image"
 userExists $username
 if [ ! $? = 0 ]
 then
-    echo "Creating user $username"
     useradd -m $username
+    echo "User $username created on server"
 fi
 if [ ! -d "/home/$username/.ssh" ]
 then
@@ -78,24 +110,8 @@ chown -R $username:$username /home/$username/
 usermod -a -G dockertest $username
 usermod -a -G ssh $username
 
-# Register user and conatiner names in user table file
-echo "$username $username" >> $user_table_file
 
-echo "User $username created on server"
-
-# Create container with SSH service runnning
-cont=$(docker run -d -name $username -p 22 $image /usr/sbin/sshd -D)
-echo "Container: $cont"
-if [ -z "$cont" ]
-then
-    echo "ERROR: Could not start container. Exiting."
-    exit 1
-fi
-port=$(docker inspect $cont | jq .[0].NetworkSettings.Ports | jq '.["22/tcp"]' | jq -r .[0].HostPort)
-
-ssh="sshpass -p \"docker\" ssh -o StrictHostKeyChecking=no -p $port root@localhost"
-
-echo "Contacting container with $ssh"
+# Put necessary files into container
 eval "$ssh mkdir ~/.ssh"
 # Copy public key to the container
 pub_key=`cat $public_key_file`
@@ -104,13 +120,17 @@ eval "$ssh 'echo $pub_key >> ~/.ssh/authorized_keys'"
 # Copy watchdog
 echo "copying dockerwatch"
 sshpass -p "docker" scp -P $port dockerwatch.sh root@localhost:/
+sshpass -p "docker" scp -P $port container.sh root@localhost:/
 sshpass -p "docker" scp -P $port stop.sh root@localhost:/
 sshpass -p "docker" scp -P $port stopnow.sh root@localhost:/
 sshpass -p "docker" scp -P $port nostop.sh root@localhost:/
 eval "$ssh 'ls -l /'"
 
 # Disable password login
-eval "$ssh 'sed -r -i \"s/^.*PasswordAuthentication[yesno ]+$/PasswordAuthentication no/\" /etc/ssh/sshd_config'"
+#eval "$ssh 'sed -r -i \"s/^.*PasswordAuthentication[yesno ]+$/PasswordAuthentication no/\" /etc/ssh/sshd_config'"
+
+# Set ForceCommand to run container.sh
+eval "$ssh 'printf \"\nForceCommand /container.sh\" >> /etc/ssh/sshd_config'"
 
 docker kill $username
 echo "Created continer $username ($cont)"
