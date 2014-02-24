@@ -5,7 +5,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.32"
+version="2.55"
 
 if [ $# -lt 1 ]
 then
@@ -20,4 +20,4 @@ flock -x -w 2 20
 VALUE=$(cat $1)
 flock -u 20
 echo $VALUE
-echo "counter=$VALUE" >&2
+

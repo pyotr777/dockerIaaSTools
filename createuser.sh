@@ -21,7 +21,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014 RIKEN AICS.
 
-version="2.47"
+version="2.52"
 # Initialization
 
 echo "createuser.sh $version"
@@ -112,8 +112,9 @@ usermod -a -G dockertest $username
 usermod -a -G ssh $username
 
 
+eval "$ssh 'locale-gen en_US.UTF-8'"
 # Put necessary files into container
-eval "$ssh mkdir ~/.ssh"
+eval "$ssh 'mkdir ~/.ssh'"
 # Copy public key to the container
 pub_key=`cat $public_key_file`
 eval "$ssh 'echo $pub_key >> ~/.ssh/authorized_keys'"
