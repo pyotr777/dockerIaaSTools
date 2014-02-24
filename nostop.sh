@@ -8,7 +8,7 @@
 
 version="1.46"
 
-sacred_proc_file="/tmp/proc.tmp"
+sacred_proc_file="/tmp/nostop"
 stop_dockerwatch="stopdockerwatch"
 
 echo $version

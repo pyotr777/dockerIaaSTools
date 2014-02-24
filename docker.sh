@@ -4,10 +4,10 @@
 # Start container if it's not running.
 # Stop container (if started) when extra processes inside the container quit.
 #
-# Created by Bryzgalov Peter on 2014/02/19
+# Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.21"
+version="2.33"
 
 log_file="/docker.log"
 dockercommand="docker -H localhost:4243"
@@ -58,7 +58,7 @@ then
     sshcommand="ssh -p $PORT -A -o StrictHostKeyChecking=no root@localhost"
     echo "started container with open port $PORT" >> $log_file
 
-    eval "$sshcommand" 2>> $log_file
+    eval "$sshcommand ' '" 2>> $log_file
 fi
 
 # get running container port number
@@ -69,6 +69,8 @@ then
 fi
 
 echo "> $(date)" >> $log_file
+# Increment connection counter
+eval "$sshcommand \"/synchro_increment.sh $counter_file\"" >> $log_file 2>&1
 
 # Execute commands in container
 if [ "$SSH_ORIGINAL_COMMAND" ]
@@ -81,19 +83,15 @@ fi
 eval "$sshcommand \"$commands\"" 2>> $log_file
 
 # After exit from container
-
 # Decrement connection counter
-eval "$sshcommand \"/synchro_decrement.sh $counter_file\"" 2>> $log_file
+eval "$sshcommand \"/synchro_decrement.sh $counter_file\"" >> $log_file 2>&1
 
 # Start dockerwatch.sh
 echo "Starting dockerwatch" >> $log_file
-/dockerwatch.sh >> $dockerwatch_log  2>&1 &
+COUNTER=$(eval "$sshcommand \"/synchro_read.sh $counter_file\"") 2>> $log_file
+eval "$sshcommand /dockerwatch.sh" >> $log_file  2>&1 #&
 
-COUNTER=$(exec "$sshcommand \"/synchro_read.sh $counter_file\"") 2>> $log_file
 echo "Exit at $COUNTER" >> $log_file
 echo "<" $(date) >> $log_file
-echo "-----------------------" >> $log_file
 
-
-echo "<" $(date) >> $log_file
 echo " " >> $log_file

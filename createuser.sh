@@ -21,7 +21,7 @@
 #  Created by Peter Bryzgalov on 2014/02/20
 #  Copyright (C) 2014 RIKEN AICS.
 
-version="2.20"
+version="2.24"
 # Initialization
 
 echo "createuser.sh $version"
@@ -36,6 +36,7 @@ username=$1
 public_key_file=$2
 image=$3
 user_table_file="/var/usertable.txt"
+container_connections_counter="/tmp/connection_counter"
 
 userExists() {
     awk -F":" '{ print $1 }' /etc/passwd | grep -x $1 > /dev/null
@@ -117,10 +118,13 @@ eval "$ssh mkdir ~/.ssh"
 pub_key=`cat $public_key_file`
 eval "$ssh 'echo $pub_key >> ~/.ssh/authorized_keys'"
 
-# Copy watchdog
-echo "copying dockerwatch"
+# Connections counter
+eval "$ssh \"echo 0 > $container_connections_counter\""
+
+# Copy service files
+echo "copying files into container"
 sshpass -p "docker" scp -P $port dockerwatch.sh root@localhost:/
-sshpass -p "docker" scp -P $port container.sh root@localhost:/
+#sshpass -p "docker" scp -P $port container.sh root@localhost:/
 sshpass -p "docker" scp -P $port stop.sh root@localhost:/
 sshpass -p "docker" scp -P $port stopnow.sh root@localhost:/
 sshpass -p "docker" scp -P $port nostop.sh root@localhost:/
@@ -133,7 +137,7 @@ eval "$ssh 'ls -l /'"
 #eval "$ssh 'sed -r -i \"s/^.*PasswordAuthentication[yesno ]+$/PasswordAuthentication no/\" /etc/ssh/sshd_config'"
 
 # Set ForceCommand to run container.sh
-eval "$ssh 'printf \"\nForceCommand /container.sh\" >> /etc/ssh/sshd_config'"
+#eval "$ssh 'printf \"\nForceCommand /container.sh\" >> /etc/ssh/sshd_config'"
 
 docker kill $username
 echo "Created continer $username ($cont)"
