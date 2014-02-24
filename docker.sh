@@ -7,14 +7,15 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.50"
+version="2.52"
 
 log_file="/docker.log"
 dockercommand="docker -H localhost:4243"
 user_table_file="/var/usertable.txt"
-# Counter file inside container
+# Counter files inside container
 counter_file="/tmp/connection_counter"
-
+stop_file="/tmp/nostop"
+timeout=7
 
 if [ ! -w $log_file ];
 then
@@ -89,11 +90,11 @@ eval "$sshcommand \"/synchro_decrement.sh $counter_file\"" >> $log_file 2>&1
 
 # Start dockerwatch.sh
 echo "Starting dockerwatch" >> $log_file
-COUNTER=$(eval "$sshcommand \"/synchro_read.sh $counter_file\"") 2>> $log_file
-
-eval "$sshcommand 'echo 123 > /dockerwatch.log; nohup /dockerwatch.sh >/dockerwatch.log 2>&1 < /dev/null &'" >> $log_file 2>&1
+#COUNTER=$(eval "$sshcommand \"/synchro_read.sh $counter_file\"") 2>> $log_file
+dockerwatch="nohup /dockerwatch.sh $counter_file $stop_file $timeout >/dockerwatch.log 2>&1 < /dev/null &"
+eval "$sshcommand '$dockerwatch'" >> $log_file 2>&1
 #eval "$dockercommand top $cont_name"  >> $log_file
-echo "Exit at $COUNTER" >> $log_file
+#echo "Exit at $COUNTER" >> $log_file
 echo "<" $(date) >> $log_file
 
 echo " " >> $log_file

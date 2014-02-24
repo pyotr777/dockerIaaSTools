@@ -1,16 +1,18 @@
-#!/bin/sh
+#!/bin/bash
 
 # Call to prevent stopping user container
 # Write "stopdockerwatch" to sacred_proc_file
 #
-# Created by Bryzgalov Peter on 2014/01/31
+# Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="1.46"
+version="2.52"
 
-sacred_proc_file="/tmp/nostop"
-stop_dockerwatch="stopdockerwatch"
+stop_file="/tmp/nostop"
 
-echo $version
-echo "Container will not be stopped by dockerwatch."
-echo $stop_dockerwatch > $sacred_proc_file
+echo "Nostop $version"
+exec 20<>$stop_file
+flock -x -w 2 20
+echo "1" > $stop_file
+flock -u 20
+echo "Enter nostop state"
