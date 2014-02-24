@@ -6,7 +6,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.32"
+version="2.33"
 
 # Connections counter
 counter_file="/tmp/connection_counter"
@@ -18,7 +18,9 @@ timeout=5
 
 echo "Start dockerwatch $version watching $counter_file"
 echo "$(date) sleep $timeout..."
+echo "Started v.$version with counter $(cat $counter_file)" > /dockerwatch.log
 sleep $timeout
+echo "test" >> /dockerwatch.log
 echo "counter: $(cat $counter_file)"
 COUNTER=$(eval "/synchro_read.sh $counter_file")
 echo "counter: $COUNTER"

@@ -7,7 +7,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.33"
+version="2.50"
 
 log_file="/docker.log"
 dockercommand="docker -H localhost:4243"
@@ -80,6 +80,7 @@ then
 else
     commands=""
 fi
+
 eval "$sshcommand \"$commands\"" 2>> $log_file
 
 # After exit from container
@@ -89,8 +90,9 @@ eval "$sshcommand \"/synchro_decrement.sh $counter_file\"" >> $log_file 2>&1
 # Start dockerwatch.sh
 echo "Starting dockerwatch" >> $log_file
 COUNTER=$(eval "$sshcommand \"/synchro_read.sh $counter_file\"") 2>> $log_file
-eval "$sshcommand /dockerwatch.sh" >> $log_file  2>&1 #&
 
+eval "$sshcommand 'echo 123 > /dockerwatch.log; nohup /dockerwatch.sh >/dockerwatch.log 2>&1 < /dev/null &'" >> $log_file 2>&1
+#eval "$dockercommand top $cont_name"  >> $log_file
 echo "Exit at $COUNTER" >> $log_file
 echo "<" $(date) >> $log_file
 
