@@ -15,7 +15,7 @@ user_table_file="/var/usertable.txt"
 # Counter files inside container
 counter_file="/tmp/connection_counter"
 stop_file="/tmp/nostop"
-timeout=7
+timeout=3
 
 if [ ! -w $log_file ];
 then

@@ -21,11 +21,10 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014 RIKEN AICS.
 
-version="2.52"
-# Initialization
-
+version="2.54"
 echo "createuser.sh $version"
 
+# Initialization
 if [ $# -lt 1 ]
 then
     echo 'Creates user with designated SSH key, creates Docker container with user name.\nMakes set up for automatic user login to the container\nwith SSH and agent forwarding.\n\n  Parameters:\n  user name,\n  file with public SSH key,\n  Docker image name to use for container (optional, default = peter/ssh).'
@@ -56,6 +55,11 @@ then
     exit 1
 fi
 
+if [ ! -f $public_key_file ]
+then
+    echo "Public key file $public_key_file not found."
+    exit 1
+fi
 
 # Register user and conatiner names in user table file
 echo "$username $username" >> $user_table_file
