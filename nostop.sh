@@ -6,9 +6,9 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.52"
+version="2.6.5"
 
-stop_file="/tmp/nostop"
+stop_file="/tmp/dockeriaas_nostop"
 
 echo "Nostop $version"
 exec 20<>$stop_file

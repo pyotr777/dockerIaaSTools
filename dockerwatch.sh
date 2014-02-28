@@ -6,7 +6,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.54"
+version="2.6.4"
 
 # Connections counter
 counter_file="/tmp/connection_counter"
@@ -51,6 +51,7 @@ fi
 if [ $COUNTER -le "0" ]
 then
     # Stop container
+    echo $(date)
     echo "Stopping container"
     echo "------------------"
     kill 1

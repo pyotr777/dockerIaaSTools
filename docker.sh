@@ -7,15 +7,14 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.52"
+version="2.6.5"
 
 log_file="/docker.log"
 dockercommand="docker -H localhost:4243"
 user_table_file="/var/usertable.txt"
 # Counter files inside container
-counter_file="/tmp/connection_counter"
-stop_file="/tmp/nostop"
-timeout=3
+counter_file="/tmp/dockeriaas_cc"
+stop_file="/tmp/dockeriaas_nostop"
 
 if [ ! -w $log_file ];
 then
@@ -71,30 +70,26 @@ fi
 
 echo "> $(date)" >> $log_file
 # Increment connection counter
-eval "$sshcommand \"/synchro_increment.sh $counter_file\"" >> $log_file 2>&1
+eval "$sshcommand \"/synchro_increment.sh $counter_file $stop_file\"" >> $log_file 2>&1
 
 # Execute commands in container
-if [ "$SSH_ORIGINAL_COMMAND" ]
-then
-    commands="$SSH_ORIGINAL_COMMAND"
-    echo "Execute: $commands" >> $log_file
-else
-    commands=""
-fi
+#if [ "$SSH_ORIGINAL_COMMAND" ]
+#then
+#    commands="$SSH_ORIGINAL_COMMAND"
+    echo "Execute: $SSH_ORIGINAL_COMMAND" >> $log_file
+#else
+#    commands=""
+#fi
 
-eval "$sshcommand \"$commands\"" 2>> $log_file
+eval "$sshcommand '$SSH_ORIGINAL_COMMAND'"
 
 # After exit from container
 # Decrement connection counter
-eval "$sshcommand \"/synchro_decrement.sh $counter_file\"" >> $log_file 2>&1
 
-# Start dockerwatch.sh
-echo "Starting dockerwatch" >> $log_file
-#COUNTER=$(eval "$sshcommand \"/synchro_read.sh $counter_file\"") 2>> $log_file
-dockerwatch="nohup /dockerwatch.sh $counter_file $stop_file $timeout >/dockerwatch.log 2>&1 < /dev/null &"
-eval "$sshcommand '$dockerwatch'" >> $log_file 2>&1
-#eval "$dockercommand top $cont_name"  >> $log_file
-#echo "Exit at $COUNTER" >> $log_file
+sd_call_command="nohup /synchro_decrement.sh $counter_file $stop_file >/dockerwatch.log 2>&1 < /dev/null &"
+echo $sd_call_command >> $log_file
+eval "$sshcommand '$sd_call_command'" >> $log_file 2>&1
+
 echo "<" $(date) >> $log_file
 
 echo " " >> $log_file

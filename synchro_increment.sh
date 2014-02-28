@@ -5,7 +5,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.32"
+version="2.6.4"
 
 if [ $# -lt 1 ]
 then

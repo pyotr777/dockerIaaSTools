@@ -21,7 +21,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014 RIKEN AICS.
 
-version="2.54"
+version="2.6.4"
 echo "createuser.sh $version"
 
 # Initialization
@@ -35,7 +35,7 @@ username=$1
 public_key_file=$2
 image=$3
 user_table_file="/var/usertable.txt"
-container_connections_counter="/tmp/connection_counter"
+container_connections_counter="/tmp/dockeriaas_cc"
 
 userExists() {
     awk -F":" '{ print $1 }' /etc/passwd | grep -x $1 > /dev/null
