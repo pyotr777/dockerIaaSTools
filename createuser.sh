@@ -19,9 +19,9 @@
 #  jq
 #
 #  Created by Peter Bryzgalov
-#  Copyright (C) 2014 RIKEN AICS.
+#  Copyright (C) 2014 RIKEN AICS. All rights reserved
 
-version="2.6.4"
+version="2.7.0"
 echo "createuser.sh $version"
 
 # Initialization
@@ -64,7 +64,6 @@ fi
 # Register user and conatiner names in user table file
 echo "$username $username" >> $user_table_file
 
-
 # Create container with SSH service runnning
 cont=$(docker run -d -name $username -p 22 $image /usr/sbin/sshd -D)
 echo "Container: $cont"
@@ -81,6 +80,7 @@ ssh="sshpass -p \"docker\" ssh -o StrictHostKeyChecking=no -p $port root@localho
 echo "Contacting container with $ssh"
 # test SSH
 ssherr=$(eval "$ssh ls" 2>&1 > /dev/null)
+# if have another key in known_hosts, clean out
 if [[ "$ssherr" == *WARNING* ]]
 then
     clean_command="ssh-keygen -f \"/root/.ssh/known_hosts\" -R [localhost]:$port"
@@ -129,6 +129,7 @@ eval "$ssh \"echo 0 > $container_connections_counter\""
 # Copy service files
 echo "copying files into container"
 sshpass -p "docker" scp -P $port dockerwatch.sh root@localhost:/
+sshpass -p "docker" scp -P $port container.sh root@localhost:/
 sshpass -p "docker" scp -P $port stop.sh root@localhost:/
 sshpass -p "docker" scp -P $port stopnow.sh root@localhost:/
 sshpass -p "docker" scp -P $port nostop.sh root@localhost:/
@@ -140,12 +141,11 @@ sshpass -p "docker" scp -P $port synchro_read.sh root@localhost:/
 eval "$ssh 'ls -l /'"
 
 
-
 # Disable password login
 #eval "$ssh 'sed -r -i \"s/^.*PasswordAuthentication[yesno ]+$/PasswordAuthentication no/\" /etc/ssh/sshd_config'"
 
 # Set ForceCommand to run container.sh
-#eval "$ssh 'printf \"\nForceCommand /container.sh\" >> /etc/ssh/sshd_config'"
+eval "$ssh 'printf \"\nForceCommand /container.sh\" >> /etc/ssh/sshd_config'"
 
 docker kill $username
 echo "Created continer $username ($cont)"

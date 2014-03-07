@@ -4,17 +4,14 @@
 # Start container if it's not running.
 # Stop container (if started) when extra processes inside the container quit.
 #
-# Created by Bryzgalov Peter
-# Copyright (c) 2013-2014 Riken AICS. All rights reserved
+# Created by Peter Bryzgalov
+# Copyright (c) 2013-2014 Riken AICS. All rights reserved.
 
-version="2.6.9 sshconnect # Unsynchronized counter increment"
+version="2.7.0"
 
 log_file="/docker.log"
 dockercommand="docker -H localhost:4243"
 user_table_file="/var/usertable.txt"
-# Counter files inside container
-counter_file="/tmp/dockeriaas_cc"
-stop_file="/tmp/dockeriaas_nostop"
 
 if [ ! -w $log_file ];
 then
@@ -52,13 +49,11 @@ then
     cont=$($dockercommand start $cont_name)
     echo "Start container $cont" >> $log_file
     sleep 1
-
     # get running container port number
     PORT=$($dockercommand inspect $cont_name | jq .[0].NetworkSettings.Ports | jq '.["22/tcp"]' | jq -r .[0].HostPort)
     sshcommand="ssh -p $PORT -A -o StrictHostKeyChecking=no root@localhost"
     echo "started container with open port $PORT" >> $log_file
-
-    eval "$sshcommand ' '" 2>> $log_file
+    eval "$sshcommand ' '" >> $log_file 2>&1
 fi
 
 # get running container port number
@@ -69,23 +64,13 @@ then
 fi
 
 echo "> $(date)" >> $log_file
-# Increment connection counter
-eval "$sshcommand \"nohup /synchro_increment.sh $counter_file $stop_file\" < /dev/null &" >> $log_file 2>&1
 
 # Execute commands in container
-
+# -----------------------------
 commands=$SSH_ORIGINAL_COMMAND
 echo "$sshcommand '$commands'" >> $log_file
-eval "$sshcommand '$commands'"
-
-
-# After exit from container
-# Decrement connection counter
-
-sd_call_command="nohup /synchro_decrement.sh $counter_file $stop_file < /dev/null &"
-#echo $sd_call_command >> $log_file
-eval "$sshcommand '$sd_call_command'" >> $log_file 2>&1
+eval "$sshcommand '$commands'" >> $log_file 2>&1
+# -----------------------------
 
 echo "<" $(date) >> $log_file
-
 echo " " >> $log_file
