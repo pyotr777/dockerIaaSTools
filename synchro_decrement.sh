@@ -5,9 +5,9 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.6.4"
+version="2.6.51"
 
-echo "Decrement counter ($version) $1 $2"
+echo "Decrement counter ($version) $1 $2 $(date +'%Y-%m-%dT %H:%M:%S.%N')"
 if [ $# -lt 2 ]
 then
     echo 'Need file names of counter and nostop files.' >&2
@@ -28,8 +28,9 @@ then
     COUNTER=1
 fi
 echo $(($COUNTER - 1)) > $1
+echo "counter=";cat <&20 #read from file
 flock -u 20
-echo "COUNTER="$COUNTER
+
 
 # Start dockerwatch.sh
 echo "Starting dockerwatch"

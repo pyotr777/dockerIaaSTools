@@ -7,7 +7,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.6.5"
+version="2.6.9 sshconnect # Unsynchronized counter increment"
 
 log_file="/docker.log"
 dockercommand="docker -H localhost:4243"
@@ -43,7 +43,7 @@ cont_name=$(grep $USER $user_table_file| awk '{ print $2 }')
 ps=$(eval "$dockercommand ps" | grep $cont_name)
 if [ "$ps" ]
 then
-    echo "Running containers: $ps" >> $log_file
+    echo "Container is running" >> $log_file
 fi
 
 if [ -z "$ps" ]
@@ -70,24 +70,20 @@ fi
 
 echo "> $(date)" >> $log_file
 # Increment connection counter
-eval "$sshcommand \"/synchro_increment.sh $counter_file $stop_file\"" >> $log_file 2>&1
+eval "$sshcommand \"nohup /synchro_increment.sh $counter_file $stop_file\" < /dev/null &" >> $log_file 2>&1
 
 # Execute commands in container
-#if [ "$SSH_ORIGINAL_COMMAND" ]
-#then
-#    commands="$SSH_ORIGINAL_COMMAND"
-    echo "Execute: $SSH_ORIGINAL_COMMAND" >> $log_file
-#else
-#    commands=""
-#fi
 
-eval "$sshcommand '$SSH_ORIGINAL_COMMAND'"
+commands=$SSH_ORIGINAL_COMMAND
+echo "$sshcommand '$commands'" >> $log_file
+eval "$sshcommand '$commands'"
+
 
 # After exit from container
 # Decrement connection counter
 
-sd_call_command="nohup /synchro_decrement.sh $counter_file $stop_file >/dockerwatch.log 2>&1 < /dev/null &"
-echo $sd_call_command >> $log_file
+sd_call_command="nohup /synchro_decrement.sh $counter_file $stop_file < /dev/null &"
+#echo $sd_call_command >> $log_file
 eval "$sshcommand '$sd_call_command'" >> $log_file 2>&1
 
 echo "<" $(date) >> $log_file

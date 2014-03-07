@@ -5,7 +5,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.6.4"
+version="2.6.52"
 
 if [ $# -lt 1 ]
 then
@@ -15,7 +15,7 @@ then
     exit 1
 fi
 
-echo "Increment counter $version"
+echo "Increment counter $version $(date +'%Y-%m-%dT %H:%M:%S.%N')"
 exec 20<>$1
 flock -x -w 2 20
 COUNTER=$(cat $1);
@@ -24,5 +24,5 @@ then
     COUNTER=0
 fi
 echo $((COUNTER + 1)) > $1
+echo "COUNTER=$(cat <&20)"
 flock -u 20
-echo "COUNTER="$COUNTER
