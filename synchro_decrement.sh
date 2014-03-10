@@ -5,7 +5,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.6.56"
+version="2.6.57"
 
 echo "Decrement counter ($version) $(date +'%Y-%m-%dT %H:%M:%S.%N') $1 $2"
 if [ $# -lt 2 ]
@@ -33,5 +33,5 @@ flock -u 20
 
 # Start dockerwatch.sh
 echo "-Starting dockerwatch"
-dockerwatch="/dockerwatch.sh $counter_file $stop_file $timeout"
-eval "nohup $dockerwatch &"
+dockerwatch=( /dockerwatch.sh "$counter_file" "$stop_file" "$timeout" )
+eval "nohup ${dockerwatch[@]} &"

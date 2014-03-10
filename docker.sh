@@ -7,7 +7,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved.
 
-version="2.7.3"
+version="2.7.43"
 
 log_file="/docker.log"
 dockercommand="docker -H localhost:4243"
@@ -51,7 +51,7 @@ then
     sleep 1
     # get running container port number
     PORT=$($dockercommand inspect $cont_name | jq .[0].NetworkSettings.Ports | jq '.["22/tcp"]' | jq -r .[0].HostPort)
-    sshcommand="ssh -p $PORT -A -o StrictHostKeyChecking=no root@localhost"
+    sshcommand=( ssh -p "$PORT" -A -o StrictHostKeyChecking=no root@localhost )
     echo "started container with open port $PORT" >> $log_file
 #	eval "$sshcommand ' '" >> $log_file 2>&1
 fi
@@ -60,16 +60,16 @@ fi
 if [ -z "$PORT" ]
 then
     PORT=$($dockercommand inspect $cont_name | jq .[0].NetworkSettings.Ports | jq '.["22/tcp"]' | jq -r .[0].HostPort)
-    sshcommand="ssh -p $PORT -A -o StrictHostKeyChecking=no root@localhost"
+    sshcommand=( ssh -p "$PORT" -A -o StrictHostKeyChecking=no root@localhost )
 fi
 
 echo "> $(date)" >> $log_file
 
 # Execute commands in container
 # -----------------------------
-commands=$SSH_ORIGINAL_COMMAND
-echo "$sshcommand '$commands'" >> $log_file
-eval "$sshcommand '$commands'"
+commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
+echo "$commands" >> $log_file
+"${commands[@]}"
 # -----------------------------
 
 echo "<" $(date) >> $log_file

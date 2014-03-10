@@ -6,7 +6,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved.
 
-version="2.7.37"
+version="2.7.51"
 
 # Output to separate log files for every thread
 separatelog=1
@@ -38,25 +38,39 @@ fi
 
 echo "container.sh $version" >> $log_file
 echo "----- start -----" >> $log_file
-#echo "USR: $USER" >> $log_file
-#echo "CLT: $SSH_CLIENT" >> $log_file
+echo "USR: $USER" >> $log_file
+echo "LOG: $LOGNAME" >> $log_file
+echo "CLT: $SSH_CLIENT" >> $log_file
+echo "CON: $SSH_CONNECTION" >> $log_file
 echo "ORC: $SSH_ORIGINAL_COMMAND" >> $log_file
+echo "TTY: $SSH_TTY" >> $log_file
+echo "DIS: $DISPLAY" >> $log_file
 
 echo "> $(date)" >> $log_file
+
+# If login from localhost, run commands without counting connections
+# and exit.
+if [[ $SSH_CLIENT == "::1 *" ]]
+then 
+	$SSH_ORIGINAL_COMMAND
+	exit 0;
+fi
+
 # Increment connection counter
 #eval "nohup /synchro_increment.sh $counter_file $stop_file\ < /dev/null &" >> $log_file 2>&1
-eval "/synchro_increment.sh $counter_file $stop_file" >> $log_file 2>&1
+commands=( /synchro_increment.sh "$counter_file" "$stop_file" )
+"${commands[@]} &" >> $log_file 2>&1
 
 # Execute commands in container
 # -----------------------------
-commands=$SSH_ORIGINAL_COMMAND
+commands=("$SSH_ORIGINAL_COMMAND")
 if [ -z "$SSH_ORIGINAL_COMMAND" ]
 then
-    echo "$(date) $welcome" >> $log_file
-    $SHELL -l
+#	echo "$(date) $welcome" >> $log_file
+    $SHELL -i
     echo "$(date)" >> $log_file
 else
-    echo "$commands" >> $log_file
+    echo "exec \"${commands}\"" >> $log_file
     eval "$commands"
 fi
 # -----------------------------
@@ -64,9 +78,8 @@ fi
 # After user commands exit,
 # decrement connection counter
 
-sd_call_command="/synchro_decrement.sh $counter_file $stop_file &"
-#eval "$sd_call_command" >> $log_file 2>&1
-eval "/synchro_decrement.sh $counter_file $stop_file" >> $log_file 2>&1
+commands=(/synchro_decrement.sh "$counter_file" "$stop_file")
+"${commands[@]} &" >> $log_file 2>&1
 
 echo "<" $(date) >> $log_file
 echo "..." >> $log_file

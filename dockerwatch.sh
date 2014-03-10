@@ -6,7 +6,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.6.56"
+version="2.6.57"
 
 # Connections counter
 counter_file="/tmp/dockeriaas_cc"
