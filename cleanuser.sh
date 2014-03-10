@@ -10,24 +10,33 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014 RIKEN AICS.
 
-version="2.6.9"
+version="2.7.0"
 usr=$1
 
 echo "Delete user $usr v.$version"
 user_table_file="/var/usertable.txt"
 
 # remove record from user_table_file
-before=$(wc -l < $user_table_file)
-sed -r -i "/^$usr(\s+)$usr$/d" $user_table_file
-after=$(wc -l < $user_table_file)
-if [ $before -eq $after ]
+pattern="^$usr\s+$usr$"
+test=$(grep -E "$pattern" $user_table_file)
+if [ -z "$test" ]
 then
     echo "Record for $usr not found"
     exit 0
 fi
-
 echo "Removing user $usr"
-docker kill $usr
-docker rm $usr
+out=$((docker kill $usr) 2>&1)
+if [[ $out == *Error* ]]
+then
+	echo $out
+    exit 0
+fi
+out=$((docker rm $usr) 2>&1)
+if [[ $out == *Error* ]]
+then
+	echo $out
+    exit 0
+fi
 deluser --remove-home $usr
-
+sed -r -i "/$pattern/d" $user_table_file
+echo "User $usr removed"

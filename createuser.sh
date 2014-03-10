@@ -21,7 +21,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014 RIKEN AICS. All rights reserved
 
-version="2.7.0"
+version="2.7.1"
 echo "createuser.sh $version"
 
 # Initialization
@@ -136,8 +136,7 @@ sshpass -p "docker" scp -P $port nostop.sh root@localhost:/
 sshpass -p "docker" scp -P $port synchro_decrement.sh root@localhost:/
 sshpass -p "docker" scp -P $port synchro_increment.sh root@localhost:/
 sshpass -p "docker" scp -P $port synchro_read.sh root@localhost:/
-#eval "$ssh touch /dockerwatch.log"
-#eval "$ssh chmod a+w /dockerwatch.log"
+eval "$ssh 'mkdir /logs'"
 eval "$ssh 'ls -l /'"
 
 
