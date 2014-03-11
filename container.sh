@@ -1,31 +1,33 @@
 #!/bin/bash
 #
 # Run commands inside user container.
-# Call
+# Call connection counters (increment-decrement).
+# Stop container when connection counter is 0.
 #
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved.
 
-version="2.7.51"
+version="2.7.6"
 
-# Output to separate log files for every thread
-separatelog=1
-welcome="Welcome, $USER !"
+# Output to separate log files for every ssh connection
+separatelog=0
+# Verbose logs for debugging
+debuglog=0
 
 # Log file name
 basename="/logs/container"
 if [ $separatelog -eq 1 ]
 then	
-	num=0
-	filename="$basename$num.log"
-	while [ -a 	$filename ]
-	do
-		num=$((num + 1))
-		filename="$basename$num.log"
-	done
-	log_file=$filename	
+    num=0
+    filename="$basename$num.log"
+    while [ -a 	$filename ]
+    do
+        num=$((num + 1))
+        filename="$basename$num.log"
+    done
+    log_file=$filename	
 else 
-	log_file="$basename.log"
+    log_file="$basename.log"
 fi
 # Counter files
 counter_file="/tmp/dockeriaas_cc"
@@ -38,26 +40,20 @@ fi
 
 echo "container.sh $version" >> $log_file
 echo "----- start -----" >> $log_file
-echo "USR: $USER" >> $log_file
-echo "LOG: $LOGNAME" >> $log_file
-echo "CLT: $SSH_CLIENT" >> $log_file
 echo "CON: $SSH_CONNECTION" >> $log_file
 echo "ORC: $SSH_ORIGINAL_COMMAND" >> $log_file
-echo "TTY: $SSH_TTY" >> $log_file
-echo "DIS: $DISPLAY" >> $log_file
-
+if [ $debuglog -eq 1 ]
+then
+    echo "USR: $USER" >> $log_file
+    echo "LOG: $LOGNAME" >> $log_file
+    echo "CLT: $SSH_CLIENT" >> $log_file
+    echo "TTY: $SSH_TTY" >> $log_file
+    echo "DIS: $DISPLAY" >> $log_file
+fi
 echo "> $(date)" >> $log_file
 
-# If login from localhost, run commands without counting connections
-# and exit.
-if [[ $SSH_CLIENT == "::1 *" ]]
-then 
-	$SSH_ORIGINAL_COMMAND
-	exit 0;
-fi
-
 # Increment connection counter
-#eval "nohup /synchro_increment.sh $counter_file $stop_file\ < /dev/null &" >> $log_file 2>&1
+#eval "nohup /synchro_increment.sh $counter_file $stop_file < /dev/null &" >> $log_file 2>&1
 commands=( /synchro_increment.sh "$counter_file" "$stop_file" )
 "${commands[@]} &" >> $log_file 2>&1
 
@@ -66,11 +62,12 @@ commands=( /synchro_increment.sh "$counter_file" "$stop_file" )
 commands=("$SSH_ORIGINAL_COMMAND")
 if [ -z "$SSH_ORIGINAL_COMMAND" ]
 then
-#	echo "$(date) $welcome" >> $log_file
     $SHELL -i
-    echo "$(date)" >> $log_file
 else
-    echo "exec \"${commands}\"" >> $log_file
+    if [ $debuglog -eq 1 ]
+    then
+    	echo "exec \"${commands}\"" >> $log_file
+    fi
     eval "$commands"
 fi
 # -----------------------------
@@ -82,4 +79,4 @@ commands=(/synchro_decrement.sh "$counter_file" "$stop_file")
 "${commands[@]} &" >> $log_file 2>&1
 
 echo "<" $(date) >> $log_file
-echo "..." >> $log_file
+echo " " >> $log_file
