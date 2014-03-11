@@ -10,7 +10,7 @@ version="2.7.6"
 
 log_file="/docker.log"
 # Verbose logs for debugging
-debuglog=0
+debuglog=1
 dockercommand="docker -H localhost:4243"
 user_table_file="/var/usertable.txt"
 

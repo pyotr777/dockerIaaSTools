@@ -10,9 +10,9 @@
 version="2.7.6"
 
 # Output to separate log files for every ssh connection
-separatelog=0
+separatelog=1
 # Verbose logs for debugging
-debuglog=0
+debuglog=1
 
 # Log file name
 basename="/logs/container"

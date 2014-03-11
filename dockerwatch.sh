@@ -6,7 +6,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.6.57"
+version="2.7.61"
 
 # Connections counter
 counter_file="/tmp/dockeriaas_cc"
@@ -30,9 +30,8 @@ fi
 
 echo "dockerwatch.sh $version watching $counter_file and $stop_file, timeout $timeout."
 sleep $timeout
-COUNTER=$(eval "/synchro_read.sh $counter_file")
-echo "dw counter: $COUNTER"
 
+# Check "nostop" state
 if [ -a $stop_file ]
 then
     NOSTOP=$(eval "/synchro_read.sh $stop_file")
@@ -46,6 +45,13 @@ then
     fi
 fi
 
+# Open connections counter file for reading
+exec 20<$1
+# Lock file with shared lock
+flock -s 20
+COUNTER=$(cat <&20)
+echo "dw counter: $COUNTER"
+
 # If connection counter is 0 or less, stop container
 if [ $COUNTER -le "0" ]
 then
@@ -55,5 +61,8 @@ then
     echo "------------------"
     kill 1
 fi
+
+# Unlock file is not called, but file is unlocked automatically.
+# flock -u 20
 
 

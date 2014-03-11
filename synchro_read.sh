@@ -5,7 +5,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.6.5"
+version="2.7.61"
 
 if [ $# -lt 1 ]
 then
@@ -15,10 +15,14 @@ then
     exit 1
 fi
 
+# Open file for reading
 exec 20<$1
-flock -x -w 2 20
-VALUE=$(cat $1)
+# Lock file in shared (read) lock
+flock -s 20
+VALUE=$(cat <&20)
 echo $VALUE
+
+# Unlock file
 flock -u 20
 
 
