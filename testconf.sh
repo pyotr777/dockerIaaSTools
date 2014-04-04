@@ -2,7 +2,7 @@
 
 pythonscript="readconf.py"
 
-val=$(python $pythonscript "${PWD}/conf_sample")
+val=$(python $pythonscript conf_sample)
 
 eval "$val"
 

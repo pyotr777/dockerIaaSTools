@@ -5,9 +5,9 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.7.61"
+version="2.7.83"
 
-echo "Increment counter ($version) $(date +'%Y-%m-%dT %H:%M:%S.%N') $1"
+echo "+Increment counter ($version) $(date +'%Y-%m-%dT %H:%M:%S.%N') $1"
 
 if [ $# -lt 1 ]
 then

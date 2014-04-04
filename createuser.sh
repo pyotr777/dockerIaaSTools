@@ -21,13 +21,13 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014 RIKEN AICS. All rights reserved
 
-version="2.7.1"
+version="2.7.8"
 echo "createuser.sh $version"
 
 # Initialization
 if [ $# -lt 1 ]
 then
-    echo 'Creates user with designated SSH key, creates Docker container with user name.\nMakes set up for automatic user login to the container\nwith SSH and agent forwarding.\n\n  Parameters:\n  user name,\n  file with public SSH key,\n  Docker image name to use for container (optional, default = peter/ssh).'
+    printf 'Creates user with designated SSH key, creates Docker container with user name.\nMakes set up for automatic user login to the container\nwith SSH and agent forwarding.\n\n  Parameters:\n  user name,\n  file with public SSH key,\n  Docker image name to use for container (optional, default = peter/ssh).\n'
     exit 0
 fi
 
@@ -36,6 +36,7 @@ public_key_file=$2
 image=$3
 user_table_file="/var/usertable.txt"
 container_connections_counter="/tmp/dockeriaas_cc"
+container_config="/tmp/dockeriaas_conf"
 
 userExists() {
     awk -F":" '{ print $1 }' /etc/passwd | grep -x $1 > /dev/null
@@ -58,6 +59,14 @@ fi
 if [ ! -f $public_key_file ]
 then
     echo "Public key file $public_key_file not found."
+    exit 1
+fi
+
+if [[ -z "$image" ]]
+then
+    echo "Need Docker image."
+    echo "Possible values:"
+    ### READ DOCKER IMAGES
     exit 1
 fi
 
@@ -126,13 +135,18 @@ eval "$ssh 'echo $pub_key >> ~/.ssh/authorized_keys'"
 # Connections counter
 eval "$ssh \"echo 0 > $container_connections_counter\""
 
+# Config file
+conf="timeout:2\n"
+eval "$ssh \"printf '$conf' > $container_config\""
+
 # Copy service files
 echo "copying files into container"
 sshpass -p "docker" scp -P $port dockerwatch.sh root@localhost:/
 sshpass -p "docker" scp -P $port container.sh root@localhost:/
-sshpass -p "docker" scp -P $port stop.sh root@localhost:/
+sshpass -p "docker" scp -P $port noncontinuous.sh root@localhost:/
 sshpass -p "docker" scp -P $port stopnow.sh root@localhost:/
-sshpass -p "docker" scp -P $port nostop.sh root@localhost:/
+sshpass -p "docker" scp -P $port readconf.py root@localhost:/
+sshpass -p "docker" scp -P $port continuous.sh root@localhost:/
 sshpass -p "docker" scp -P $port synchro_decrement.sh root@localhost:/
 sshpass -p "docker" scp -P $port synchro_increment.sh root@localhost:/
 sshpass -p "docker" scp -P $port synchro_read.sh root@localhost:/

@@ -1,5 +1,18 @@
 #! /usr/bin/python
 
+# Read configuration file,
+# prints to stdout bahs script for variables assignment.
+# Sample use from bash script:
+#
+# val=$(python readconf.py conf_sample)
+# eval "$val"
+# echo "a=$a"
+#
+# Created by Bryzgalov Peter
+# Copyright (c) 2013-2014 Riken AICS. All rights reserved
+
+version="2.7.8"
+
 import ConfigParser
 import StringIO
 import sys

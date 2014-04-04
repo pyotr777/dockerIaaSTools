@@ -7,10 +7,10 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved.
 
-version="2.7.6"
+version="2.7.83"
 
 # Output to separate log files for every ssh connection
-separatelog=1
+separatelog=0
 # Verbose logs for debugging
 debuglog=1
 

@@ -5,9 +5,9 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.7.61"
+version="2.7.84"
 
-echo "Decrement counter ($version) $(date +'%Y-%m-%dT %H:%M:%S.%N') $1 $2"
+echo "-Decrement counter ($version) $(date +'%Y-%m-%dT %H:%M:%S.%N') $1 $2"
 if [ $# -lt 2 ]
 then
     echo 'Need file names of counter and nostop files.' >&2
@@ -18,7 +18,6 @@ fi
 
 counter_file=$1
 stop_file=$2
-timeout=3
 
 # Open file for reading and writing
 exec 20<>$1
@@ -36,5 +35,5 @@ flock -u 20
 
 # Start dockerwatch.sh
 echo "-Starting dockerwatch"
-dockerwatch=( /dockerwatch.sh "$counter_file" "$stop_file" "$timeout" )
-eval "nohup ${dockerwatch[@]} &"
+dockerwatch=( /dockerwatch.sh "$counter_file" "$stop_file")
+eval "nohup ${dockerwatch[@]} &" >>/dockerwatch.log 2>&1
