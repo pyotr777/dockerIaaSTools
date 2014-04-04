@@ -6,11 +6,12 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.7.61"
+version="2.7.7"
 
 # Connections counter
 counter_file="/tmp/dockeriaas_cc"
 stop_file="/tmp/dockeriaas_nostop"
+conifg_file="/tmp/conf"
 timeout=5
 
 if [ $1 ]

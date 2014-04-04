@@ -14,6 +14,9 @@ separatelog=1
 # Verbose logs for debugging
 debuglog=1
 
+# Counter files
+counter_file="/tmp/dockeriaas_cc"
+stop_file="/tmp/dockeriaas_nostop"
 # Log file name
 basename="/logs/container"
 if [ $separatelog -eq 1 ]
@@ -29,9 +32,6 @@ then
 else 
     log_file="$basename.log"
 fi
-# Counter files
-counter_file="/tmp/dockeriaas_cc"
-stop_file="/tmp/dockeriaas_nostop"
 
 if [ ! -w $log_file ];
 then
