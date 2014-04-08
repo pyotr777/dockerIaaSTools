@@ -21,7 +21,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014 RIKEN AICS. All rights reserved
 
-version="2.9.04"
+version="2.9.05"
 echo "createuser.sh $version"
 
 # Initialization
@@ -37,6 +37,7 @@ image=$3
 user_table_file="/var/usertable.txt"
 container_connections_counter="/tmp/dockeriaas_cc"
 container_config="/tmp/dockeriaas_conf"
+service_files=("dockerwatch.sh" "container.sh" "nodaemon.sh" "daemon.sh" "stopnow.sh" "readconf.py" "synchro_decrement.sh" "synchro_increment.sh")
 
 userExists() {
     awk -F":" '{ print $1 }' /etc/passwd | grep -x $1 > /dev/null
@@ -141,14 +142,10 @@ eval "$ssh \"printf '$conf' > $container_config\""
 
 # Copy service files
 echo "copying files into container"
-sshpass -p "docker" scp -P $port dockerwatch.sh root@localhost:/
-sshpass -p "docker" scp -P $port container.sh root@localhost:/
-sshpass -p "docker" scp -P $port noncontinuous.sh root@localhost:/
-sshpass -p "docker" scp -P $port stopnow.sh root@localhost:/
-sshpass -p "docker" scp -P $port readconf.py root@localhost:/
-sshpass -p "docker" scp -P $port continuous.sh root@localhost:/
-sshpass -p "docker" scp -P $port synchro_decrement.sh root@localhost:/
-sshpass -p "docker" scp -P $port synchro_increment.sh root@localhost:/
+for item in ${service_files[*]}
+do
+    sshpass -p "docker" scp -P $port $item root@localhost:/
+done
 eval "$ssh 'mkdir /logs'"
 eval "$ssh 'ls -l /'"
 
