@@ -14,7 +14,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.7.83"
+version="2.9.04"
 
 # Connections counter
 counter_file="/tmp/dockeriaas_cc"
@@ -25,8 +25,8 @@ timeout=5
 
 # Read timeout from config file
 val=$(python $config_reader $config_file)
-echo "Configuration file:"
-echo $val
+#echo "Configuration file:"
+#echo $val
 eval "$val"
 
 if [ $1 ]
@@ -44,19 +44,24 @@ then
     timeout=$3
 fi
 
-echo "dockerwatch.sh $version watching $counter_file and $stop_file, timeout $timeout."
+
+stat=($(</proc/$$/stat))    # create an array
+pparent=${stat[4]}
+
+echo "/$pparent $(date +'%Y-%m-%d %H:%M:%S.%N') dockerwatch.sh ($version),timeout $timeout."
+
 sleep $timeout
 
 # Check "nostop" state
 if [ -a $stop_file ]
 then
-    NOSTOP=$(eval "/synchro_read.sh $stop_file")
-    echo "dw nostop: $NOSTOP"
+    NOSTOP=$(cat $stop_file)
+    echo "/dw nostop: $NOSTOP"
 
     # If "nostop" file has 1, exit dockerwatch
     if [ $NOSTOP -gt "0" ]
     then
-        echo "dw Nostop state"
+        echo "/dw Nostop state"
         exit 0
     fi
 fi
@@ -64,21 +69,20 @@ fi
 # Open connections counter file for reading
 exec 20<$1
 # Lock file with shared lock
-flock -s 20
-COUNTER=$(cat <&20)
-echo "dw counter: $COUNTER"
+flock -x 20
+COUNTER=$(cat $1)
+echo "/$pparent $(date +'%Y-%m-%d %H:%M:%S.%N') dw counter: $COUNTER"
 
 # If connection counter is 0 or less, stop container
 if [ $COUNTER -le "0" ]
 then
     # Stop container
-    echo $(date)
-    echo "dw Stopping container"
-    echo "------------------"
+    echo "/$pparent $(date +'%Y-%m-%d %H:%M:%S.%N') dw Stopping container"
+    echo " "
     kill 1
 fi
 
-# Unlock file is not called, but file is unlocked automatically.
-# flock -u 20
+# If unlock file is not called, file is unlocked automatically after process get killed.
+flock -u 20
 
 

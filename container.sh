@@ -7,12 +7,12 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved.
 
-version="2.7.83"
+version="2.9.04"
 
 # Output to separate log files for every ssh connection
 separatelog=0
 # Verbose logs for debugging
-debuglog=1
+debuglog=0
 
 # Counter files
 counter_file="/tmp/dockeriaas_cc"
@@ -38,31 +38,31 @@ then
     touch $log_file
 fi
 
-echo "container.sh $version" >> $log_file
-echo "----- start -----" >> $log_file
-echo "CON: $SSH_CONNECTION" >> $log_file
-echo "ORC: $SSH_ORIGINAL_COMMAND" >> $log_file
+echo "> $$ $(date +'%Y-%m-%d %H:%M:%S.%N') container.sh ($version)" >> $log_file
 if [ $debuglog -eq 1 ]
 then
+    echo "----- start -----" >> $log_file
+    echo "CON: $SSH_CONNECTION" >> $log_file
+    echo "ORC: $SSH_ORIGINAL_COMMAND" >> $log_file
     echo "USR: $USER" >> $log_file
     echo "LOG: $LOGNAME" >> $log_file
     echo "CLT: $SSH_CLIENT" >> $log_file
     echo "TTY: $SSH_TTY" >> $log_file
     echo "DIS: $DISPLAY" >> $log_file
 fi
-echo "> $(date)" >> $log_file
 
 # Increment connection counter
-#eval "nohup /synchro_increment.sh $counter_file $stop_file < /dev/null &" >> $log_file 2>&1
-commands=( /synchro_increment.sh "$counter_file" "$stop_file" )
-"${commands[@]} &" >> $log_file 2>&1
+commands=( /synchro_increment.sh "$counter_file" )
+"${commands[@]}" >> $log_file 2>&1
 
 # Execute commands in container
 # -----------------------------
 commands=("$SSH_ORIGINAL_COMMAND")
 if [ -z "$SSH_ORIGINAL_COMMAND" ]
 then
+    #echo "start shell" >> $log_file
     $SHELL -i
+    #echo "exit shell" >> $log_file
 else
     if [ $debuglog -eq 1 ]
     then
@@ -76,7 +76,7 @@ fi
 # decrement connection counter
 
 commands=(/synchro_decrement.sh "$counter_file" "$stop_file")
-"${commands[@]} &" >> $log_file 2>&1
+"${commands[@]}" >> $log_file 2>&1 
 
-echo "<" $(date) >> $log_file
+echo "< $$ $(date +'%Y-%m-%d %H:%M:%S.%N')" >> $log_file
 echo " " >> $log_file

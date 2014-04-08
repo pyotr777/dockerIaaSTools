@@ -21,7 +21,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014 RIKEN AICS. All rights reserved
 
-version="2.7.8"
+version="2.9.04"
 echo "createuser.sh $version"
 
 # Initialization
@@ -149,7 +149,6 @@ sshpass -p "docker" scp -P $port readconf.py root@localhost:/
 sshpass -p "docker" scp -P $port continuous.sh root@localhost:/
 sshpass -p "docker" scp -P $port synchro_decrement.sh root@localhost:/
 sshpass -p "docker" scp -P $port synchro_increment.sh root@localhost:/
-sshpass -p "docker" scp -P $port synchro_read.sh root@localhost:/
 eval "$ssh 'mkdir /logs'"
 eval "$ssh 'ls -l /'"
 
