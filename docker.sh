@@ -6,7 +6,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved.
 
-version="2.7.6"
+version="3.0.1"
 
 log_file="/docker.log"
 # Verbose logs for debugging
@@ -36,6 +36,14 @@ fi
 
 # Get user container name from table in file user_table_file
 cont_name=$(grep -E "^$USER " $user_table_file| awk '{ print $2 }')
+if [ -z "$cont_name" ] 
+then
+    echo "No user $USER registered here." >&2
+    exit 1
+fi
+
+image="localhost/$USER"
+
 if [ $debuglog -eq 1 ]
 then
     echo "User container: $cont_name" >> $log_file
@@ -52,11 +60,24 @@ fi
 
 if [ -z "$ps" ]
 then
-#   Start container
-    cont=$($dockercommand start $cont_name)
-    echo "Start container $cont" >> $log_file
-    sleep 1
-#   get running container port number
+    psa=$(eval "$dockercommand ps -a" | grep $cont_name)
+    if [ "$psa" ] && [ $debuglog -eq 1 ]
+    then
+        echo "Container is stopped" >> $log_file
+        #   Start container
+        cont=$($dockercommand start $cont_name)
+        echo "Start container $cont" >> $log_file
+        sleep 1
+    else 
+        echo "No container. Run from image." >> $log_file
+        # Run container
+        cont=$($dockercommand run -d -name $cont_name -P $image)
+        echo "Start container $cont from $image" >> $log_file
+        sleep 1
+    fi
+
+    
+    #   get running container port number
     PORT=$($dockercommand inspect $cont_name | jq .[0].NetworkSettings.Ports | jq '.["22/tcp"]' | jq -r .[0].HostPort)
     sshcommand=( ssh -p "$PORT" -A -o StrictHostKeyChecking=no root@localhost )
     echo "started container with open port $PORT" >> $log_file

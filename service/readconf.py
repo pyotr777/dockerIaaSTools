@@ -1,7 +1,7 @@
 #! /usr/bin/python
 
 # Read configuration file,
-# prints to stdout bahs script for variables assignment.
+# prints to stdout bash script for variables assignment.
 # Sample use from bash script:
 #
 # val=$(python readconf.py conf_sample)

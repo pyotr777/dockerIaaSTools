@@ -21,23 +21,39 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014 RIKEN AICS. All rights reserved
 
-version="2.9.05"
+version="3.0.1"
 echo "createuser.sh $version"
 
 # Initialization
 if [ $# -lt 1 ]
 then
-    printf 'Creates user with designated SSH key, creates Docker container with user name.\nMakes set up for automatic user login to the container\nwith SSH and agent forwarding.\n\n  Parameters:\n  user name,\n  file with public SSH key,\n  Docker image name to use for container (optional, default = peter/ssh).\n'
+    read -r -d '' hlp <<-EOF
+    Creates user with designated SSH key, creates Docker container with user name.
+    Makes set up for automatic user login to the container
+    with SSH and agent forwarding.
+
+    Parameters:
+    user name,
+    Docker image name to use for container,
+    file with public SSH key,
+
+EOF
+    echo "$hlp"
     exit 0
 fi
 
 username=$1
-public_key_file=$2
-image=$3
+image=$2
+public_key_file=$3
+
 user_table_file="/var/usertable.txt"
 container_connections_counter="/tmp/dockeriaas_cc"
 container_config="/tmp/dockeriaas_conf"
-service_files=("dockerwatch.sh" "container.sh" "nodaemon.sh" "daemon.sh" "stopnow.sh" "readconf.py" "synchro_decrement.sh" "synchro_increment.sh")
+container_home="/root"
+service_folder="service"
+
+# Clean service folder from hidden files (MAC OS)
+rm "$service/._*"
 
 userExists() {
     awk -F":" '{ print $1 }' /etc/passwd | grep -x $1 > /dev/null
@@ -67,46 +83,55 @@ if [[ -z "$image" ]]
 then
     echo "Need Docker image."
     echo "Possible values:"
-    ### READ DOCKER IMAGES
+    docker images | grep -v REPOSITORY
     exit 1
 fi
+
+avail_image=$(docker images | grep $image)
+if [[ -z "$avail_image" ]]
+then
+    echo "Not found Docker image $image."
+    echo "Try one of these:"
+    docker images | grep -v REPOSITORY | awk '{ print $1 }'
+    exit 1
+fi
+
+# Create Dockerfile 
+
+read -r -d '' dockerfile_string <<EOF
+FROM $image
+EXPOSE 22
+ENV DEBIAN_FRONTEND noninteractive
+RUN locale-gen en_US.UTF-8
+RUN apt-get install -y ssh
+RUN mkdir -p /var/run/sshd
+ENV DEBIAN_FRONTEND dialog
+
+RUN mkdir $container_home/.ssh
+ADD $public_key_file $container_home/.ssh/authorized_keys
+ADD service/ /
+
+RUN echo 0 > $container_connections_counter
+RUN printf "timeout:2\n" > $container_config
+RUN mkdir /logs
+
+# Disable password login
+# RUN sed -r -i "s/^.*PasswordAuthentication[yesno ]+$/PasswordAuthentication no/" /etc/ssh/sshd_config
+
+RUN printf "\nForceCommand /container.sh" >> /etc/ssh/sshd_config
+ENV DEBIAN_FRONTEND dialog
+CMD ["/usr/sbin/sshd","-D"]
+EOF
+
+echo "$dockerfile_string" > Dockerfile
+
+# Build image
+
+docker build -t localhost/$username .
+
 
 # Register user and conatiner names in user table file
 echo "$username $username" >> $user_table_file
-
-# Create container with SSH service runnning
-cont=$(docker run -d -name $username -p 22 $image /usr/sbin/sshd -D)
-echo "Container: $cont"
-if [ -z "$cont" ]
-then
-    echo "ERROR: Could not create container."
-    exit 1
-fi
-
-port=$(docker inspect $cont | jq .[0].NetworkSettings.Ports | jq '.["22/tcp"]' | jq -r .[0].HostPort)
-
-ssh="sshpass -p \"docker\" ssh -o StrictHostKeyChecking=no -p $port root@localhost"
-
-echo "Contacting container with $ssh"
-# test SSH
-ssherr=$(eval "$ssh ls" 2>&1 > /dev/null)
-# if have another key in known_hosts, clean out
-if [[ "$ssherr" == *WARNING* ]]
-then
-    clean_command="ssh-keygen -f \"/root/.ssh/known_hosts\" -R [localhost]:$port"
-    echo "Clean known_hosts: $clean_command"
-    eval $clean_command
-fi
-
-echo "Creating user $username with public key in $public_key_file"
-
-if [ -z $3 ]
-then
-    image="peter/ssh"
-else
-    image=$3
-fi
-echo "Using image $image"
 
 # Create user
 userExists $username
@@ -126,40 +151,6 @@ usermod -a -G dockertest $username
 usermod -a -G ssh $username
 
 
-eval "$ssh 'locale-gen en_US.UTF-8'"
-# Put necessary files into container
-eval "$ssh 'mkdir ~/.ssh'"
-# Copy public key to the container
-pub_key=`cat $public_key_file`
-eval "$ssh 'echo $pub_key >> ~/.ssh/authorized_keys'"
-
-# Connections counter
-eval "$ssh \"echo 0 > $container_connections_counter\""
-
-# Config file
-conf="timeout:2\n"
-eval "$ssh \"printf '$conf' > $container_config\""
-
-# Copy service files
-echo "copying files into container"
-for item in ${service_files[*]}
-do
-    sshpass -p "docker" scp -P $port $item root@localhost:/
-done
-eval "$ssh 'mkdir /logs'"
-eval "$ssh 'ls -l /'"
-
-
-# Disable password login
-#eval "$ssh 'sed -r -i \"s/^.*PasswordAuthentication[yesno ]+$/PasswordAuthentication no/\" /etc/ssh/sshd_config'"
-
-# Set ForceCommand to run container.sh
-eval "$ssh 'printf \"\nForceCommand /container.sh\" >> /etc/ssh/sshd_config'"
-
-docker kill $username
-echo "Created continer $username ($cont)"
-echo "Finished."
-
 # Check TCP connection to Docker remote API
 # Required for automatic login to container
 dockercommand="docker -H localhost:4243"
@@ -171,3 +162,6 @@ then
     echo "socat TCP-LISTEN:4243,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock &"
     echo "socid=\$!"
 fi
+
+# docker run -d -name $username -P localhost/$username
+

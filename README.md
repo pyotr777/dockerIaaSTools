@@ -1,4 +1,4 @@
-# Tools for creating a basic Infrastructure-as-a-Service
+# Tools for creating a basic Infrastructure-as-a-Service (v.3.0.1)
 
 This is a set of bash-script files for creating a basic IaaS on a Linux server. 
 The purpose is to give every user a personal virtual machine in the form of a Docker container. Users containers can be based on any Docker image (https://index.docker.io). Users have root privileges inside their containers. 
@@ -48,13 +48,12 @@ Creates user on the server and creates user's container, set up the server and c
 
 #### Arguments:
 	user name
-	public key file
 	Docker image
+	public key file
+	
 	
 #### Requires:
-	sshpass
 	jq
-
 
 
 ### docker.sh
@@ -74,14 +73,14 @@ This file is called on every SSH connection to a container. It counts SSH connec
 Called by container.sh and stop.sh to stop container in due time - when all active SSH connections to the container are closed.
 
 
-### nostop.sh
+### daemon.sh
 
-Enabling “nostop” mode. This command is to be called inside a container to prevent it from stopping when there are no active SSH connectinos.
+Enabling “daemon” mode. This command is to be called inside a container to prevent it from stopping when there are no active SSH connectinos.
 
 
-### stop.sh
+### nodaemon.sh
 
-Command is to be called inside a container to tur off “nostop” mode: to set the container to be stopped after all SSH sessions are closed.
+Command is to be called inside a container to tur off “daemon” mode: to set the container to be stopped after all SSH sessions are closed.
 
 
 ### stopnow.sh
