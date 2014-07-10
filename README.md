@@ -1,14 +1,14 @@
 # Tools for creating a basic Infrastructure-as-a-Service (v.3.1)
 
 This is a set of bash-script files for creating a basic IaaS on a Linux server. 
-The purpose is to give every user a personal virtual machine in the form of a docker container (https://index.docker.io). Users’ containers can be buit from any docker image. Users have root privileges inside their containers. 
+The purpose is to give every user a personal virtual machine in the form of a docker container (https://index.docker.io). Users’ containers can be built from any docker image. Users have root privileges inside their containers. 
 
 Users are created on the server machine, every user is assigned one container. Service users are added to dockertest group. 
 When a user connects to the server with SSH he/she automatically logins into his/her container. It is absolutely seamless for users. 
 
 Authentication is based on ssh-key and key forwarding. SSH-key authentication and key-forwarding for the server must be enabled on the user side. 
 
-When host administrator created a user, the following acctions are performed:
+When host administrator created a user, the following actions are performed:
 * User created on the host (server) and added to groups dockertest and ssh
 Dockertest group is used for assigning Force command, and ssh groups can be used to restrict ssh login to the host only to this group members.
 * User's docker image is built
@@ -40,7 +40,7 @@ Match Group dockertest
 
 ## SSH commands
 
-There are special ssh commands, that when run from local computer will not be executed inside the container. These commands are for manipulationg user container.
+There are special ssh commands, that when run from local computer will not be executed inside the user container but rather on the host. These commands are for manipulating user container.
 
 ### commit
 
