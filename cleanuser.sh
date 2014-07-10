@@ -2,18 +2,19 @@
 
 #  Removes user from server,
 #  removes user record from tabel file (/usertable.txt)
-#  and removes user container.
+#  removes user container,
+#  removes user image.
 #
 #  Parameters:
 #  user name
 #
 #  Created by Peter Bryzgalov
-#  Copyright (C) 2014 RIKEN AICS.
+#  Copyright (c) 2014 RIKEN AICS.
 
-version="3.0.1"
+version="3.1.1"
 usr=$1
 container=$usr
-image=localhost/$usr
+image="localhost/$usr"
 
 echo "Delete user $usr v.$version"
 user_table_file="/var/usertable.txt"
@@ -27,17 +28,15 @@ userExists() {
 echo "Removing container $container"
 
 out=$(docker kill $container 2>&1) 
-
 if [[ $out == *Error* ]]
 then
-	echo $out
-	exit 1
+	echo $out	
 fi
+
 out=$(docker rm $container 2>&1)
 if [[ $out == *Error* ]]
 then
-	echo $out
-    exit 1
+	echo $out    
 fi
 
 echo "Removing image $image"
@@ -45,7 +44,6 @@ out=$(docker rmi $image 2>&1)
 if [[ $out == *Error* ]]
 then
 	echo $out
-    exit 1
 fi
 
 # remove record from user_table_file

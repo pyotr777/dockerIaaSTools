@@ -21,21 +21,21 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014 RIKEN AICS. All rights reserved
 
-version="3.0.1"
+version="3.1.5"
 echo "createuser.sh $version"
 
 # Initialization
 if [ $# -lt 1 ]
 then
-    read -r -d '' hlp <<-EOF
-    Creates user with designated SSH key, creates Docker container with user name.
-    Makes set up for automatic user login to the container
-    with SSH and agent forwarding.
+    read -r -d '' hlp <<-'EOF'
+	Creates user with designated SSH key, creates Docker image "localhost/username".
+	Makes set up for automatic user login to the container
+	with SSH and agent forwarding.
 
-    Parameters:
-    user name,
-    Docker image name to use for container,
-    file with public SSH key,
+Parameters:
+	user name,
+	Docker image name to use for container,
+	file with public SSH key,
 
 EOF
     echo "$hlp"
@@ -51,9 +51,8 @@ container_connections_counter="/tmp/dockeriaas_cc"
 container_config="/tmp/dockeriaas_conf"
 container_home="/root"
 service_folder="service"
+service_container_folder="/usr/local/bin"
 
-# Clean service folder from hidden files (MAC OS)
-rm "$service/._*"
 
 userExists() {
     awk -F":" '{ print $1 }' /etc/passwd | grep -x $1 > /dev/null
@@ -105,11 +104,11 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN locale-gen en_US.UTF-8
 RUN apt-get install -y ssh
 RUN mkdir -p /var/run/sshd
-ENV DEBIAN_FRONTEND dialog
+#ENV DEBIAN_FRONTEND dialog
 
 RUN mkdir $container_home/.ssh
 ADD $public_key_file $container_home/.ssh/authorized_keys
-ADD service/ /
+ADD $service_folder/ $service_container_folder/
 
 RUN echo 0 > $container_connections_counter
 RUN printf "timeout:2\n" > $container_config
@@ -118,7 +117,7 @@ RUN mkdir /logs
 # Disable password login
 # RUN sed -r -i "s/^.*PasswordAuthentication[yesno ]+$/PasswordAuthentication no/" /etc/ssh/sshd_config
 
-RUN printf "\nForceCommand /container.sh" >> /etc/ssh/sshd_config
+RUN printf "\nForceCommand $service_container_folder/container.sh" >> /etc/ssh/sshd_config
 ENV DEBIAN_FRONTEND dialog
 CMD ["/usr/sbin/sshd","-D"]
 EOF
@@ -134,22 +133,17 @@ docker build -t localhost/$username .
 echo "$username $username" >> $user_table_file
 
 # Create user
-userExists $username
-if [ ! $? = 0 ]
-then
-    useradd -m $username
-    echo "User $username created on server"
-fi
+useradd -m $username
+usermod -a -G dockertest $username
+usermod -a -G ssh $username
+echo "User $username created on server"
+
 if [ ! -d "/home/$username/.ssh" ]
 then
     mkdir -p /home/$username/.ssh
 fi
 cat $public_key_file > /home/$username/.ssh/authorized_keys
 chown -R $username:$username /home/$username/
-
-usermod -a -G dockertest $username
-usermod -a -G ssh $username
-
 
 # Check TCP connection to Docker remote API
 # Required for automatic login to container

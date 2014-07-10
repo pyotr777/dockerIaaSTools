@@ -11,7 +11,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.7.8"
+version="3.1.0"
 
 import ConfigParser
 import StringIO

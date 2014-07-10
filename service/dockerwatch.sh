@@ -14,19 +14,21 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="2.9.05"
+version="3.1.0"
+
+servdir="/usr/local/bin"
 
 # Connections counter
 counter_file="/tmp/dockeriaas_cc"
 stop_file="/tmp/dockeriaas_nostop"
 config_file="/tmp/dockeriaas_conf"
-config_reader="/readconf.py"
+config_reader="$servdir/readconf.py"
 timeout=5
 
 # Read timeout from config file
 val=$(python $config_reader $config_file)
 #echo "Configuration file:"
-#echo $val
+echo "dockerwatch $version"
 eval "$val"
 
 if [ $1 ]

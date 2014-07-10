@@ -7,7 +7,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved.
 
-version="2.9.05"
+version="3.1.0"
 
 # Output to separate log files for every ssh connection
 separatelog=0
@@ -19,6 +19,9 @@ counter_file="/tmp/dockeriaas_cc"
 stop_file="/tmp/dockeriaas_nostop"
 # Log file name
 basename="/logs/container"
+# Working directory
+servdir="/usr/local/bin"
+
 if [ $separatelog -eq 1 ]
 then	
     num=0
@@ -52,7 +55,7 @@ then
 fi
 
 # Increment connection counter
-commands=( /synchro_increment.sh "$counter_file" )
+commands=( $servdir/synchro_increment.sh "$counter_file" )
 "${commands[@]}" >> $log_file 2>&1
 
 # Execute commands in container
@@ -75,7 +78,7 @@ fi
 # After user commands exit,
 # decrement connection counter
 
-commands=(/synchro_decrement.sh "$counter_file" "$stop_file")
+commands=( $servdir/synchro_decrement.sh "$counter_file" "$stop_file")
 "${commands[@]}" >> $log_file 2>&1 
 
 echo "< $$ $(date +'%Y-%m-%d %H:%M:%S.%N')" >> $log_file

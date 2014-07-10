@@ -4,9 +4,15 @@
 # Run commands inside user container.
 #
 # Created by Peter Bryzgalov
-# Copyright (c) 2013-2014 Riken AICS. All rights reserved.
+# Copyright (c) 2013-2014 RIKEN AICS.
+#
+# If SSH_ORIGINAL_COMMAND:
+# commit - commit container
+# remove - remove continaer
 
-version="3.0.1"
+
+
+version="3.1.4"
 
 log_file="/docker.log"
 # Verbose logs for debugging
@@ -46,8 +52,46 @@ image="localhost/$USER"
 
 if [ $debuglog -eq 1 ]
 then
-    echo "User container: $cont_name" >> $log_file
+    echo "User container: $cont_name, Image: $image" >> $log_file
 fi
+
+# Check SSH_ORIGINAL_COMMAND
+
+if [ "$SSH_ORIGINAL_COMMAND" = commit ]
+    then 
+    if [ $debuglog -eq 1 ]
+    then
+        echo "Commit container $cont_name" >> $log_file
+    fi    
+    command="$dockercommand commit $cont_name $image"
+    $command
+    exit 0
+fi
+
+if [ "$SSH_ORIGINAL_COMMAND" = stop ]
+    then 
+    if [ $debuglog -eq 1 ]
+    then
+        echo "Stop container $cont_name" >> $log_file
+    fi 
+    command="$dockercommand kill $cont_name"
+    $command
+    exit 0
+fi
+
+if [ "$SSH_ORIGINAL_COMMAND" = remove ]
+    then 
+    if [ $debuglog -eq 1 ]
+    then
+        echo "Remove container $cont_name" >> $log_file
+    fi 
+    command="$dockercommand rm $cont_name"
+    $command
+    exit 0
+fi
+
+
+
 # Get running containers names
 # If user container name not in the list,
 # start user container,
@@ -61,18 +105,30 @@ fi
 if [ -z "$ps" ]
 then
     psa=$(eval "$dockercommand ps -a" | grep $cont_name)
-    if [ "$psa" ] && [ $debuglog -eq 1 ]
+    if [ "$psa" ] 
     then
-        echo "Container is stopped" >> $log_file
+        if [ $debuglog -eq 1 ]
+            then
+            echo "Container is stopped" >> $log_file
+        fi
         #   Start container
         cont=$($dockercommand start $cont_name)
-        echo "Start container $cont" >> $log_file
+        if [ $debuglog -eq 1 ]
+            then
+            echo "Start container $cont" >> $log_file
+        fi
         sleep 1
     else 
-        echo "No container. Run from image." >> $log_file
+        if [ $debuglog -eq 1 ]
+            then
+            echo "No container. Run from image." >> $log_file
+        fi
         # Run container
-        cont=$($dockercommand run -d -name $cont_name -P $image)
-        echo "Start container $cont from $image" >> $log_file
+        cont=$($dockercommand run -d --name $cont_name -P $image)
+        if [ $debuglog -eq 1 ]
+            then
+            echo "Start container $cont from $image" >> $log_file
+        fi
         sleep 1
     fi
 
@@ -97,7 +153,7 @@ echo "> $(date)" >> $log_file
 commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
 if [ $debuglog -eq 1 ]
 then
-    echo "$commands" >> $log_file
+    echo "${commands[@]}" >> $log_file
 fi
 "${commands[@]}"
 # -----------------------------
