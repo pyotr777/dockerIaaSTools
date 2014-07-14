@@ -21,7 +21,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014 RIKEN AICS. All rights reserved
 
-version="3.1.5"
+version="3.1.6"
 echo "createuser.sh $version"
 
 # Initialization
@@ -102,9 +102,9 @@ FROM $image
 EXPOSE 22
 ENV DEBIAN_FRONTEND noninteractive
 RUN locale-gen en_US.UTF-8
-RUN apt-get install -y ssh
+# RUN apt-get install -y ssh
 RUN mkdir -p /var/run/sshd
-#ENV DEBIAN_FRONTEND dialog
+# ENV DEBIAN_FRONTEND dialog
 
 RUN mkdir $container_home/.ssh
 ADD $public_key_file $container_home/.ssh/authorized_keys

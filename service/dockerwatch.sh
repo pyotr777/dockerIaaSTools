@@ -14,9 +14,10 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved
 
-version="3.1.0"
+version="3.1.3"
 
-servdir="/usr/local/bin"
+echo "dockerwatch $version"
+servdir=$(servdir.sh)
 
 # Connections counter
 counter_file="/tmp/dockeriaas_cc"
@@ -28,7 +29,6 @@ timeout=5
 # Read timeout from config file
 val=$(python $config_reader $config_file)
 #echo "Configuration file:"
-echo "dockerwatch $version"
 eval "$val"
 
 if [ $1 ]

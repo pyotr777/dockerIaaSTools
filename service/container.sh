@@ -7,12 +7,12 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved.
 
-version="3.1.0"
+version="3.1.5"
 
 # Output to separate log files for every ssh connection
 separatelog=0
 # Verbose logs for debugging
-debuglog=0
+debuglog=1
 
 # Counter files
 counter_file="/tmp/dockeriaas_cc"
@@ -20,7 +20,7 @@ stop_file="/tmp/dockeriaas_nostop"
 # Log file name
 basename="/logs/container"
 # Working directory
-servdir="/usr/local/bin"
+servdir="$(servdir.sh)"
 
 if [ $separatelog -eq 1 ]
 then	
@@ -52,6 +52,7 @@ then
     echo "CLT: $SSH_CLIENT" >> $log_file
     echo "TTY: $SSH_TTY" >> $log_file
     echo "DIS: $DISPLAY" >> $log_file
+    echo "$servdir" >> $log_file
 fi
 
 # Increment connection counter
@@ -78,7 +79,7 @@ fi
 # After user commands exit,
 # decrement connection counter
 
-commands=( $servdir/synchro_decrement.sh "$counter_file" "$stop_file")
+commands=( $servdir/synchro_decrement.sh "$counter_file" "$stop_file" "$log_file")
 "${commands[@]}" >> $log_file 2>&1 
 
 echo "< $$ $(date +'%Y-%m-%d %H:%M:%S.%N')" >> $log_file

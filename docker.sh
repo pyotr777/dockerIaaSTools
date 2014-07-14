@@ -12,7 +12,7 @@
 
 
 
-version="3.1.4"
+version="3.1.5"
 
 log_file="/docker.log"
 # Verbose logs for debugging
@@ -96,7 +96,7 @@ fi
 # If user container name not in the list,
 # start user container,
 # get SSH port external number
-ps=$(eval "$dockercommand ps" | grep $cont_name)
+ps=$(eval "$dockercommand ps" | grep "$cont_name ")
 if [ "$ps" ] && [ $debuglog -eq 1 ]
 then
     echo "Container is running" >> $log_file
@@ -104,7 +104,7 @@ fi
 
 if [ -z "$ps" ]
 then
-    psa=$(eval "$dockercommand ps -a" | grep $cont_name)
+    psa=$(eval "$dockercommand ps -a" | grep "$cont_name ")
     if [ "$psa" ] 
     then
         if [ $debuglog -eq 1 ]

@@ -11,7 +11,16 @@
 #  Created by Peter Bryzgalov
 #  Copyright (c) 2014 RIKEN AICS.
 
-version="3.1.1"
+version="3.1.2"
+
+if [[ -z $1 ]]
+	then
+	echo "Enter user name to delete."
+	echo "Users:"
+	echo "$(./users)"
+	exit 1
+fi
+
 usr=$1
 container=$usr
 image="localhost/$usr"

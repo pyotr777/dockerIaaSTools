@@ -1,10 +1,10 @@
-FROM peter/ssh
+FROM peter/atool
 EXPOSE 22
 ENV DEBIAN_FRONTEND noninteractive
 RUN locale-gen en_US.UTF-8
-RUN apt-get install -y ssh
+# RUN apt-get install -y ssh
 RUN mkdir -p /var/run/sshd
-#ENV DEBIAN_FRONTEND dialog
+# ENV DEBIAN_FRONTEND dialog
 
 RUN mkdir /root/.ssh
 ADD docker_rsa.pub /root/.ssh/authorized_keys
