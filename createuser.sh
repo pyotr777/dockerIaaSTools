@@ -102,8 +102,12 @@ FROM $image
 EXPOSE 22
 ENV DEBIAN_FRONTEND noninteractive
 RUN locale-gen en_US.UTF-8
-# RUN apt-get install -y ssh
+RUN apt-get install -y ssh
 RUN mkdir -p /var/run/sshd
+
+# Disable pam_loginuid
+# RUN sed -r -i "s/session\s+required\s+pam_loginuid\.so/### session required pam_loginuid.so/" /etc/pam.d/sshd
+
 # ENV DEBIAN_FRONTEND dialog
 
 RUN mkdir $container_home/.ssh
@@ -128,6 +132,8 @@ echo "$dockerfile_string" > Dockerfile
 
 docker build -t localhost/$username .
 
+# Remove Dockerfile
+rm Dockerfile
 
 # Register user and conatiner names in user table file
 echo "$username $username" >> $user_table_file
