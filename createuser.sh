@@ -21,7 +21,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014 RIKEN AICS. All rights reserved
 
-version="3.1.6"
+version="3.1.8"
 echo "createuser.sh $version"
 
 # Initialization
@@ -105,8 +105,8 @@ RUN locale-gen en_US.UTF-8
 RUN apt-get install -y ssh
 RUN mkdir -p /var/run/sshd
 
-# Disable pam_loginuid
-# RUN sed -r -i "s/session\s+required\s+pam_loginuid\.so/### session required pam_loginuid.so/" /etc/pam.d/sshd
+# Disable pam_loginuid to correct SSH login bug
+RUN sed -r -i "s/session\s+required\s+pam_loginuid\.so/session optional pam_loginuid.so/" /etc/pam.d/sshd
 
 # ENV DEBIAN_FRONTEND dialog
 
