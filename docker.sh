@@ -6,15 +6,23 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2014 RIKEN AICS.
 #
-# If SSH_ORIGINAL_COMMAND:
+# Special commands (SSH_ORIGINAL_COMMAND):
 # commit - commit container
 # remove - remove continaer
 
 
 
-version="3.1.5"
+version="3.2.4"
 
 log_file="/docker.log"
+
+# mount table file lists folders, that should be mount on container startup (docker run command)
+# file format:
+# username@mountcommand1;mountcommand2;...
+# mountcommand format: 
+# [host-dir]:[container-dir]:[rw|ro]
+mount_file="/var/mounttable.txt"
+
 # Verbose logs for debugging
 debuglog=1
 dockercommand="docker -H localhost:4243"
@@ -102,6 +110,7 @@ then
     echo "Container is running" >> $log_file
 fi
 
+
 if [ -z "$ps" ]
 then
     psa=$(eval "$dockercommand ps -a" | grep "$cont_name ")
@@ -123,11 +132,34 @@ then
             then
             echo "No container. Run from image." >> $log_file
         fi
+
+        # Read from mount_file, search for username@... line,
+        # return part of Docker run command for mounting volumes
+        # like this: "-v hostdir:contdir -v hostdir:contdir:ro"
+
+        getMounts() {
+            mount_command=""
+            mounts=$(grep $1 $mount_file | awk -F"@" '{ print $2 }')  
+            if [ -z "$mounts" ]
+            then 
+                echo ""
+                exit 0
+            fi      
+            IFS=';' read -ra mounts_arr <<< "$mounts"
+            for mnt in "${mounts_arr[@]}"
+            do
+                mount_command="$mount_command-v=$mnt "
+            done                   
+            echo $mount_command
+        }
+
         # Run container
-        cont=$($dockercommand run -d --name $cont_name -P $image)
+        mounts=$(getMounts $USER)
+        options="run -d --name $cont_name $mounts -P $image"
+        cont=$($dockercommand $options)
         if [ $debuglog -eq 1 ]
             then
-            echo "Start container $cont from $image" >> $log_file
+            echo "Start container $cont with command: $options" >> $log_file
         fi
         sleep 1
     fi

@@ -82,7 +82,7 @@ if [[ -z "$image" ]]
 then
     echo "Need Docker image."
     echo "Possible values:"
-    docker images | grep -v REPOSITORY
+    docker images | grep -v REPOSITORY | awk '{ print $1 ":" $2 }' | sed 's/:latest//'
     exit 1
 fi
 
@@ -91,7 +91,7 @@ if [[ -z "$avail_image" ]]
 then
     echo "Not found Docker image $image."
     echo "Try one of these:"
-    docker images | grep -v REPOSITORY | awk '{ print $1 }'
+    docker images | grep -v REPOSITORY | awk '{ print $1 ":" $2 }' | sed 's/:latest//'
     exit 1
 fi
 
