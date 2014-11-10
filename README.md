@@ -1,4 +1,4 @@
-# Tools for creating a basic Infrastructure-as-a-Service (v.3.1)
+# Tools for creating a basic Infrastructure-as-a-Service (v3.2)
 
 This is a set of bash-script files for creating a basic IaaS on a Linux server. 
 The purpose is to give every user a personal virtual machine in the form of a docker container (https://index.docker.io). Users’ containers can be built from any docker image. Users have root privileges inside their containers. 
@@ -54,13 +54,29 @@ Stop user container.
 
 Remove user container. User's docker image is not removed, so when user logs in a new container will be created from user's docker image. 
 
+## In-container commands
+
+### daemon
+
+Enabling “daemon” mode. This command is to be called inside a container to prevent it from stopping when there are no active SSH connections.
+
+
+### nodaemon
+
+Command is to be called inside a container to turn off “daemon” mode: to set the container to be stopped after all SSH sessions are closed.
+
+
+### stopnow
+
+Command is to be run inside a container to stop the container immediately.
+
 
 ## Files
 
 
 ### cleanuser.sh
 
-Removes user on the server and removes users's containers.
+Removes user on the server and removes user's containers.
 
 
 
@@ -93,20 +109,6 @@ This file is called on every SSH connection to a container. It counts SSH connec
 
 Called by container.sh and stop.sh to stop container in due time - when all active SSH connections to the container are closed.
 
-
-### daemon
-
-Enabling “daemon” mode. This command is to be called inside a container to prevent it from stopping when there are no active SSH connections.
-
-
-### nodaemon
-
-Command is to be called inside a container to turn off “daemon” mode: to set the container to be stopped after all SSH sessions are closed.
-
-
-### stopnow
-
-Command is to be run inside a container to stop the container immediately.
 
 
 
