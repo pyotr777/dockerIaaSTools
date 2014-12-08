@@ -12,7 +12,7 @@
 
 
 
-version="3.2.4"
+version="3.2.5"
 
 log_file="/docker.log"
 
@@ -155,7 +155,13 @@ then
 
         # Run container
         mounts=$(getMounts $USER)
-        options="run -d --name $cont_name $mounts -P $image"
+	# Permissions to mount with sshfs inside container
+	moptions=""
+	if [ "permit_mounts" ]
+	then
+	    moptions=" --cap-add SYS_ADMIN --device /dev/fuse"
+    	fi
+        options="run -d --name $cont_name $mounts $moptions -P $image"
         cont=$($dockercommand $options)
         if [ $debuglog -eq 1 ]
             then
