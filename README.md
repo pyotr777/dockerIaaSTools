@@ -1,4 +1,4 @@
-# Tools for creating a basic Infrastructure-as-a-Service (v3.2)
+# Tools for creating a basic Infrastructure-as-a-Service (v3.2.25)
 
 This is a set of bash-script files for creating a basic IaaS on a Linux server. 
 The purpose is to give every user a personal virtual machine in the form of a docker container (https://index.docker.io). Users’ containers can be built from any docker image. Users have root privileges inside their containers. 
@@ -53,6 +53,11 @@ Stop user container.
 ### remove
 
 Remove user container. User's docker image is not removed, so when user logs in a new container will be created from user's docker image. 
+
+### port
+
+Display container ssh port number on the host side. Container must be running. 
+Also port number is saved in SSH_PORT environment variable inside container. 
 
 ## In-container commands
 

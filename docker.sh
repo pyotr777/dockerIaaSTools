@@ -11,8 +11,7 @@
 # remove - remove continaer
 
 
-
-version="3.2.5"
+version="3.2.25"
 
 log_file="/docker.log"
 
@@ -27,6 +26,50 @@ mount_file="/var/mounttable.txt"
 debuglog=1
 dockercommand="docker -H localhost:4243"
 user_table_file="/var/usertable.txt"
+
+# 1 if we started container
+container_started=0
+
+# FUNCTIONS
+
+# Return host-side port number mapped to the port 
+getPort() {
+	cont_port=""
+	if [ -z $1 ]
+	then
+		cont_port="22/tcp"
+	else 
+		cont_port=$1
+	fi
+
+	PORT=$($dockercommand inspect $cont_name | jq .[0].NetworkSettings.Ports | jq '.["'"$1"'"]' | jq -r .[0].HostPort)
+	if [ $debuglog -eq 1 ]
+	then
+		echo "Port mapping $cont_port->$PORT" >> $log_file
+	fi
+	echo $PORT
+}
+
+# Read from mount_file, search for username@... line,
+# return part of Docker run command for mounting volumes
+# like this: "-v hostdir:contdir -v hostdir:contdir:ro"
+
+getMounts() {
+    mount_command=""
+    mounts=$(grep $1 $mount_file | awk -F"@" '{ print $2 }')  
+    if [ -z "$mounts" ]
+    then 
+        echo ""
+        exit 0
+    fi      
+    IFS=';' read -ra mounts_arr <<< "$mounts"
+    for mnt in "${mounts_arr[@]}"
+    do
+        mount_command="$mount_command-v=$mnt "
+    done                   
+    echo $mount_command
+}
+
 
 if [ ! -w $log_file ];
 then
@@ -98,6 +141,17 @@ if [ "$SSH_ORIGINAL_COMMAND" = remove ]
     exit 0
 fi
 
+if [ "$SSH_ORIGINAL_COMMAND" = port ]
+    then 
+    if [ $debuglog -eq 1 ]
+    then
+        echo "Return container $cont_name ssh port number" >> $log_file
+    fi 
+    PORT=$(getPort "22/tcp")
+    echo $PORT
+    exit 0
+fi
+
 
 
 # Get running containers names
@@ -133,54 +187,36 @@ then
             echo "No container. Run from image." >> $log_file
         fi
 
-        # Read from mount_file, search for username@... line,
-        # return part of Docker run command for mounting volumes
-        # like this: "-v hostdir:contdir -v hostdir:contdir:ro"
-
-        getMounts() {
-            mount_command=""
-            mounts=$(grep $1 $mount_file | awk -F"@" '{ print $2 }')  
-            if [ -z "$mounts" ]
-            then 
-                echo ""
-                exit 0
-            fi      
-            IFS=';' read -ra mounts_arr <<< "$mounts"
-            for mnt in "${mounts_arr[@]}"
-            do
-                mount_command="$mount_command-v=$mnt "
-            done                   
-            echo $mount_command
-        }
-
         # Run container
         mounts=$(getMounts $USER)
-	# Permissions to mount with sshfs inside container
-	moptions=""
-	if [ "permit_mounts" ]
-	then
-	    moptions=" --cap-add SYS_ADMIN --device /dev/fuse"
-    	fi
+		# Permissions to mount with sshfs inside container
+		moptions=""
+		if [ "permit_mounts" ]
+		then
+		    moptions=" --cap-add SYS_ADMIN --device /dev/fuse"
+	    fi
         options="run -d --name $cont_name $mounts $moptions -P $image"
         cont=$($dockercommand $options)
         if [ $debuglog -eq 1 ]
             then
             echo "Start container $cont with command: $options" >> $log_file
         fi
+        container_started=1
         sleep 1
     fi
-
     
     #   get running container port number
-    PORT=$($dockercommand inspect $cont_name | jq .[0].NetworkSettings.Ports | jq '.["22/tcp"]' | jq -r .[0].HostPort)
+    PORT=$(getPort "22/tcp")
     sshcommand=( ssh -p "$PORT" -A -o StrictHostKeyChecking=no root@localhost )
-    echo "started container with open port $PORT" >> $log_file
+    echo "started container with open port $PORT" >> $log_file    
 fi
+
+
 
 # get running container port number
 if [ -z "$PORT" ]
-then
-    PORT=$($dockercommand inspect $cont_name | jq .[0].NetworkSettings.Ports | jq '.["22/tcp"]' | jq -r .[0].HostPort)
+then	
+    PORT=$(getPort "22/tcp")
     sshcommand=( ssh -p "$PORT" -A -o StrictHostKeyChecking=no root@localhost )
 fi
 
@@ -188,6 +224,23 @@ echo "> $(date)" >> $log_file
 
 # Execute commands in container
 # -----------------------------
+
+# Set environment variables in container
+
+if [ $container_started -eq 1 ]
+	then
+	# SSH external port number
+	command1='echo . /root/.getport >> /root/.bashrc'
+	command2='echo export SSH_PORT='"$PORT"' > /root/.getport'
+	commands=( "${sshcommand[@]}" "$command1; $command2" )
+	if [ $debuglog -eq 1 ]
+	then
+		echo "setting environment variables" >> $log_file
+	    echo "${commands[@]}" >> $log_file
+	fi
+	"${commands[@]}"
+fi
+
 commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
 if [ $debuglog -eq 1 ]
 then
