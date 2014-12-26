@@ -104,7 +104,7 @@ echo $command
 #echo "tunnel PID=$ssh_tunnel"
 
 # ssh
-remote_commands="mkdir -p $path\nsshfs -p $port $local_user@172.17.42.1:$path $path\ncd $path\necho \"\$version Here I am!\";pwd;ls -l;exit;"
+remote_commands="mkdir -p $path\nsshfs -p $port $local_user@172.17.42.1:$path $path\ncd $path\necho \"ver \$version\";pwd;ls -l;export PATH=$PATH:/opt/omnixmp/bin;make"
 
 cmd_file="rcom.sh"
 echo "#!/bin/bash" > $cmd_file
