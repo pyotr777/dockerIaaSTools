@@ -104,7 +104,7 @@ echo $command
 #echo "tunnel PID=$ssh_tunnel"
 
 # ssh
-remote_commands="mkdir -p $path\nsshfs -p $port $local_user@172.17.42.1:$path $path\ncd $path\necho \"$version Here I am!\";pwd;ls -l;exit;"
+remote_commands="mkdir -p $path\nsshfs -p $port $local_user@172.17.42.1:$path $path\ncd $path\necho \"\$version Here I am!\";pwd;ls -l;exit;"
 
 cmd_file="rcom.sh"
 echo "#!/bin/bash" > $cmd_file
@@ -114,8 +114,10 @@ chmod +x $cmd_file
 cp_command="scp -P $container_port $cmd_file root@$server:/"
 echo $cp_command
 $cp_command
-command="ssh $remoteuser@$server '/$cmd_file'"
+command="ssh -A $remoteuser@$server '/$cmd_file'"
 echo $command
 $command
+rm $cmd_file
+
 
 
