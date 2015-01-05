@@ -14,7 +14,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2014 Japan Riken AICS. All rights reserved
 
-usage="Usage:\nmakeSetup.sh <username>@<server address>:<server port> <path to mount>"
+usage="Usage:\nmakeSetup.sh <username>@<server address> <path to mount>"
 
 # Split string by delimiter
 # First parameter - string
@@ -76,36 +76,27 @@ then
 	exit 1
 fi
 
-addr_port=$(splitString $1 @ 1)
-
-if [ -z "$addr_port" ]
-then
-	echo "Error in argument $1"
-	echo -e "$usage"
-	exit 1
-fi
-
-server=$(splitString $addr_port : 0)
-port=$(splitString $addr_port : 1)
+server=$(splitString $1 @ 1)
 
 # Second argument is path
 
 path=$2
 
 container_port=$(ssh $remoteuser@$server port)
-echo "SSH port of container=$container_port"
+free_port=$(ssh $remoteuser@$server freeport)
+echo "SSH server port: $free_port, container port:$container_port"
 
 # 1
-command="ssh -f $remoteuser@$server -R $port:localhost:22 -N"
+command="ssh $remoteuser@$server -R $free_port:localhost:22 -N"
 echo $command
-#$command &
+$command &
 #echo $$
 #echo $!
-#ssh_tunnel=$!
-#echo "tunnel PID=$ssh_tunnel"
+ssh_tunnel=$!
+echo "tunnel PID=$ssh_tunnel"
 
 # ssh
-remote_commands="mkdir -p $path\nsshfs -p $port $local_user@172.17.42.1:$path $path\ncd $path\necho \"ver \$version\";pwd;ls -l;export PATH=$PATH:/opt/omnixmp/bin;make"
+remote_commands="mkdir -p $path\nsshfs -p $free_port $local_user@172.17.42.1:$path $path\ncd $path\necho \"ver \$version\";pwd;ls -l;export PATH=$PATH:/opt/omnixmp/bin;make"
 
 cmd_file="rcom.sh"
 echo "#!/bin/bash" > $cmd_file
@@ -115,10 +106,11 @@ chmod +x $cmd_file
 cp_command="scp -P $container_port $cmd_file root@$server:/"
 echo $cp_command
 $cp_command
-command="ssh -A $remoteuser@$server '/$cmd_file'"
+command="ssh -A -o StrictHostKeyChecking=no $remoteuser@$server '/$cmd_file'"
 echo $command
 $command
 rm $cmd_file
+kill "$ssh_tunnel"
 
 
 
