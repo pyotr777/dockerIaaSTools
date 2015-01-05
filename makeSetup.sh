@@ -11,7 +11,8 @@
 # Ex.:
 # makeSetup.sh user@server:port /path
 #
-# Copyright © 2014 Peter Bryzgalov Japan, Riken, AICS
+# Created by Bryzgalov Peter
+# Copyright (c) 2014 Japan Riken AICS. All rights reserved
 
 usage="Usage:\nmakeSetup.sh <username>@<server address>:<server port> <path to mount>"
 
