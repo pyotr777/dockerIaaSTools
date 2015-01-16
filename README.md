@@ -1,7 +1,7 @@
 # Tools for creating a basic Infrastructure-as-a-Service (v3.2.26)
 
 This is a set of bash-script files for creating a basic single-host IaaS on a Linux server. 
-The purpose is to give every user a personal virtual machine in the form of a docker container (docker.com). Users’ containers can be built from any docker image. Users have root privileges inside their containers. User can change and save their container. 
+The purpose is to give every user a personal virtual machine in the form of a docker container (http://docker.com). Users’ containers can be built from any docker image. Users have root privileges inside their containers. User can change and save their container. 
 
 Users are created on the server machine, every user is assigned one container. Service users are added to dockertest group. 
 When a service user connects to the server with SSH he/she automatically logins into his/her container. It is absolutely seamless for users. 
@@ -122,5 +122,5 @@ Called by container.sh and stop.sh to stop container in due time - when all acti
 
 Utility for mounting user local directories into user container on the server and executing commands inside the container. Must be executed on user local computer.
 
-Usage: makeRemote.sh -u \<username> -h \<server address> -p \<local path to code> -k \<path to ssh-key> -m \<build command>
+Usage: makeRemote.sh -u \<username> -h \<server address> -p \<local path to code> -k \<path to ssh-key> -m \<remote command>
 
