@@ -90,7 +90,7 @@ Removes user on the server and removes user's containers.
 #### Sample usage:
 
 ```bash
-sudo ./leanuser.sh usernic
+sudo ./cleanuser.sh usernic
 ```
 
 
