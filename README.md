@@ -122,5 +122,5 @@ Called by container.sh and stop.sh to stop container in due time - when all acti
 
 Utility for mounting user local directories into user container on the server and executing commands inside the container. Must be executed on user local computer.
 
-Usage: makeRemote.sh -u <username> -h <server address> -p <local path to code> -k <path to ssh-key> -m <build command>
+Usage: makeRemote.sh -u \<username> -h \<server address> -p \<local path to code> -k \<path to ssh-key> -m \<build command>
 
