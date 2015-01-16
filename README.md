@@ -89,7 +89,7 @@ Removes user on the server and removes user's containers.
 
 
 
-### <strong color="#F55">createuser.sh</strong>
+### <h3 color="#F55">createuser.sh</h3>
 
 Creates user on the server and builds user's docker image, set up the server for automatic login into container with SSH key. 
 
