@@ -91,16 +91,22 @@ Removes user on the server and removes user's containers.
 
 ### <strong color="#F55">createuser.sh</strong>
 
-Creates user on the server and creates user's container, set up the server and container for automatic user login to container with SSH key. 
+Creates user on the server and builds user's docker image, set up the server for automatic login into container with SSH key. 
 
 #### Arguments:
 	user name
 	docker image
-	public key file
+	public SSH key file
 	
 	
 #### Requires:
 	jq
+    
+#### Sample usage:
+
+```bash
+./createuser.sh usernic myserver.net user_ssh_key
+```
 
 
 ### docker.sh
