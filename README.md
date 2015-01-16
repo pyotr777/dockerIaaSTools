@@ -12,6 +12,7 @@ When host administrator creates a user, the following actions are performed:
 * A user created on the host (server) and added to groups "dockertest" and "ssh". Every user of IaaS must be a member of "dockertest" group. "ssh" group can be used to restrict ssh login to the server only to this group members.
 * A docker image for the user is built.
 
+For instructions on creating users see [createuser.sh](#createusersh).
 
 ## Scheme
 
