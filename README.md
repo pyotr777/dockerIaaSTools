@@ -87,6 +87,11 @@ Command is to be run inside a container to stop the container immediately.
 
 Removes user on the server and removes user's containers.
 
+#### Sample usage:
+
+```bash
+sudo ./leanuser.sh usernic
+```
 
 
 ### createuser.sh
@@ -105,7 +110,7 @@ Creates user on the server and builds user's docker image, set up the server for
 #### Sample usage:
 
 ```bash
-./createuser.sh usernic ubuntu:latest user_ssh_key
+sudo ./createuser.sh usernic ubuntu:latest user_ssh_key
 ```
 
 
