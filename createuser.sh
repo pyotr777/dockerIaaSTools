@@ -21,7 +21,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014 RIKEN AICS. All rights reserved
 
-version="3.1.8"
+version="3.2.27"
 echo "createuser.sh $version"
 
 # Initialization
