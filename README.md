@@ -1,17 +1,16 @@
 # Tools for creating a basic Infrastructure-as-a-Service (v3.2.26)
 
-This is a set of bash-script files for creating a basic IaaS on a Linux server. 
+This is a set of bash-script files for creating a basic single-host IaaS on a Linux server. 
 The purpose is to give every user a personal virtual machine in the form of a docker container (https://index.docker.io). Users’ containers can be built from any docker image. Users have root privileges inside their containers. 
 
 Users are created on the server machine, every user is assigned one container. Service users are added to dockertest group. 
-When a user connects to the server with SSH he/she automatically logins into his/her container. It is absolutely seamless for users. 
+When a service user connects to the server with SSH he/she automatically logins into his/her container. It is absolutely seamless for users. 
 
 Authentication is based on ssh-key and key forwarding. SSH-key authentication and key-forwarding for the server must be enabled on the user side. 
 
-When host administrator created a user, the following actions are performed:
-* User created on the host (server) and added to groups dockertest and ssh
-Dockertest group is used for assigning Force command, and ssh groups can be used to restrict ssh login to the host only to this group members.
-* User's docker image is built
+When host administrator creates a user, the following actions are performed:
+* A user created on the host (server) and added to groups "dockertest" and "ssh". Every user of IaaS must be a member of "dockertest" group. "ssh" group can be used to restrict ssh login to the server only to this group members.
+* A docker image for the user is built.
 
 
 ## Scheme
@@ -119,5 +118,8 @@ This file is called on every SSH connection to a container. It counts SSH connec
 Called by container.sh and stop.sh to stop container in due time - when all active SSH connections to the container are closed.
 
 
+### makeRemote.sh
 
+Utility for mounting user local directories into user container on the server and executing commands inside the container.
+Usage: makeRemote.sh -u <username> -h <server address> -p <local path to code> -k <path to ssh-key> -m <build command>
 
