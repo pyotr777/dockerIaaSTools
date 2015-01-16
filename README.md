@@ -89,7 +89,7 @@ Removes user on the server and removes user's containers.
 
 
 
-### <h3 color="#F55">createuser.sh</h3>
+### createuser.sh
 
 Creates user on the server and builds user's docker image, set up the server for automatic login into container with SSH key. 
 
@@ -105,7 +105,7 @@ Creates user on the server and builds user's docker image, set up the server for
 #### Sample usage:
 
 ```bash
-./createuser.sh usernic myserver.net user_ssh_key
+./createuser.sh usernic ubuntu:latest user_ssh_key
 ```
 
 
