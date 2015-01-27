@@ -143,3 +143,5 @@ Utility for mounting user local directories into user container on the server an
 
 Usage: ```makeRemote.sh -u <username> -h <server address> -p <local directory to mount> -k <path to ssh-key> -m <remote command>```
 
+#### Requires:
+	SSHFS in container 
