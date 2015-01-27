@@ -23,6 +23,13 @@ For instructions on creating users see [createuser.sh](#createusersh).
 http://youtu.be/_SvzsBcp5wQ
 
 
+## Mounting local directories in containers
+
+It is possible to mount directories from user local computer into user container with the same path. [makeRemote.sh](#makeremotesh) tool should be executed on user computer to mount local direcotory into container. 
+
+![Mounting local direcotries into container](dockerIaaS-mounting.jpg)
+
+
 ## Set up on the server machine
 
 SSH key forwarding must be enabled on the server. 
