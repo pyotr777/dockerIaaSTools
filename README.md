@@ -29,6 +29,9 @@ It is possible to mount directories from user local computer into user container
 
 ![Mounting local direcotries into container](dockerIaaS-mounting.jpg)
 
+Sample application of directories mounting: building source code in container.
+Demonstration:
+http://youtu.be/86ybJdnNvUc
 
 ## Set up on the server machine
 
