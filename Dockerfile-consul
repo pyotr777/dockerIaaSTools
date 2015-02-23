@@ -1,9 +1,0 @@
-# Consul server
-
-FROM peter/consul-serv:latest
-
-MAINTAINER Peter Bryzgalov <petr.bryzgalov@aics.riken.jp>
-
-EXPOSE 8300 8400 8500 8600 8301 8302
-
-CMD ["consul","agent", "-server", "-bootstrap-expect", "1", "-data-dir", "/tmp/consul"]

@@ -29,9 +29,13 @@ It is possible to mount directories from user local computer into user container
 
 ![Mounting local direcotries into container](dockerIaaS-mounting.jpg)
 
-Sample application of directories mounting: building source code in container.
+Sample application of directories mounting: building source code in container from K-scope.
 Demonstration:
 http://youtu.be/86ybJdnNvUc
+
+K-scope is a Java application for static and dynamic analysis of Fortran sorce code. K-scope is developed by RIKEN AICS Software Development Team.
+http://www.aics.riken.jp/ungi/soft/kscope/
+https://github.com/K-scope/K-scope
 
 ## Set up on the server machine
 
