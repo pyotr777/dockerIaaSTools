@@ -36,9 +36,7 @@ http://youtu.be/86ybJdnNvUc
 K-scope is a Java application for static and dynamic analysis of Fortran sorce code. 
 
 K-scope is developed by RIKEN AICS Software Development Team.
-
 http://www.aics.riken.jp/ungi/soft/kscope/
-
 http://github.com/K-scope/K-scope
 
 ## Set up on the server machine
