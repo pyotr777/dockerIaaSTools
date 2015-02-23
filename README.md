@@ -33,8 +33,8 @@ Sample application of directories mounting: building source code in container fo
 Demonstration:
 http://youtu.be/86ybJdnNvUc
 
-K-scope is a Java application for static and dynamic analysis of Fortran sorce code. 
-K-scope is developed by RIKEN AICS Software Development Team.
+K-scope is a Java application for static and dynamic analysis of Fortran sorce code.   
+K-scope is developed by RIKEN AICS Software Development Team.   
 http://www.aics.riken.jp/ungi/soft/kscope/  
 http://github.com/K-scope/K-scope
 
