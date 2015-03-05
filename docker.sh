@@ -11,7 +11,7 @@
 # remove - remove continaer
 
 
-version="3.2.26"
+version="3.2.27"
 
 log_file="/docker.log"
 
@@ -203,7 +203,11 @@ if [ "$SSH_ORIGINAL_COMMAND" = freeport ]
     exit 0
 fi
 
-
+# Action (command) on container
+# empty string -- container is running, no actions performed
+# start -- container has been stopped and was started
+# run -- there were no container and a new container was created
+container_action=""
 
 # Get running containers names
 # If user container name not in the list,
@@ -231,6 +235,7 @@ then
             then
             echo "Start container $cont" >> $log_file
         fi
+        container_action="start"
         sleep 1
     else 
         if [ $debuglog -eq 1 ]
@@ -252,7 +257,7 @@ then
             then
             echo "Start container $cont with command: $options" >> $log_file
         fi
-        container_started=1
+        container_action="run"
         sleep 1
     fi
     
@@ -277,20 +282,30 @@ echo "> $(date)" >> $log_file
 # -----------------------------
 
 # Set environment variables in container
-
-if [ $container_started -eq 1 ]
-	then
-	# SSH external port number
-	command1='echo . /root/.getport >> /root/.bashrc'
-	command2='echo export SSH_PORT='"$PORT"' > /root/.getport'
-	commands=( "${sshcommand[@]}" "$command1; $command2" )
-	if [ $debuglog -eq 1 ]
-	then
-		echo "setting environment variables" >> $log_file
-	    echo "${commands[@]}" >> $log_file
-	fi
-	"${commands[@]}"
-fi
+case "$container_action" in
+    start) 
+        command1='echo export SSH_PORT='"$PORT"' > /root/.getport'
+        commands=( "${sshcommand[@]}" "$command1" )
+        if [ $debuglog -eq 1 ]
+        then
+            echo "setting environment variables" >> $log_file
+            echo "${commands[@]}" >> $log_file
+        fi
+        "${commands[@]}"
+    ;;
+    run)
+    	# SSH external port number
+    	command1='echo . /root/.getport >> /root/.bashrc'
+    	command2='echo export SSH_PORT='"$PORT"' > /root/.getport'
+    	commands=( "${sshcommand[@]}" "$command1; $command2" )
+    	if [ $debuglog -eq 1 ]
+    	then
+    		echo "setting environment variables" >> $log_file
+    	    echo "${commands[@]}" >> $log_file
+    	fi
+    	"${commands[@]}"
+    ;;
+esac
 
 commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
 if [ $debuglog -eq 1 ]
