@@ -7,7 +7,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2014 Riken AICS. All rights reserved.
 
-version="3.1.5"
+version="3.1.6"
 
 # Output to separate log files for every ssh connection
 separatelog=0
@@ -48,7 +48,7 @@ then
     echo "CON: $SSH_CONNECTION" >> $log_file
     echo "ORC: $SSH_ORIGINAL_COMMAND" >> $log_file
     echo "USR: $USER" >> $log_file
-    echo "LOG: $LOGNAME" >> $log_file
+    echo "MNT: $(mount)" >> $log_file
     echo "CLT: $SSH_CLIENT" >> $log_file
     echo "TTY: $SSH_TTY" >> $log_file
     echo "DIS: $DISPLAY" >> $log_file

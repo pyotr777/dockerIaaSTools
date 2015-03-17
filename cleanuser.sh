@@ -11,7 +11,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (c) 2014 RIKEN AICS.
 
-version="3.1.2"
+version="3.1.3"
 
 if [[ -z $1 ]]
 	then
@@ -56,6 +56,7 @@ then
 fi
 
 # remove record from user_table_file
+echo "Removing record from $user_table_file"
 pattern="^$usr\s+$usr$"
 test=$(grep -E "$pattern" $user_table_file)
 
@@ -65,7 +66,12 @@ then
 	exit 1
 fi
 
-
-deluser --remove-home $usr
 sed -r -i "/$pattern/d" $user_table_file
 echo "User $usr removed"
+
+echo "Removing user on host"
+deluser --remove-home $usr
+
+echo "Removing group on host"
+groupdel $usr
+

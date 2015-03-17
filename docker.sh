@@ -11,7 +11,7 @@
 # remove - remove continaer
 
 
-version="3.2.29"
+version="3.2.31"
 
 log_file="/docker.log"
 
@@ -99,7 +99,6 @@ getMounts() {
     mounts=$(grep "$1@" $mount_file | awk -F"@" '{ print $2 }')
     if [ -z "$mounts" ]
     then
-        echo "No mounts"
         exit 0
     fi
     IFS=';' read -ra mounts_arr <<< "$mounts"
@@ -246,6 +245,7 @@ then
 
         # Run container
         mounts=$(getMounts $USER)
+        echo "Mouts: $mounts" >> $log_file
 		# Permissions to mount with sshfs inside container
 		moptions=""
 		if [ "permit_mounts" ]

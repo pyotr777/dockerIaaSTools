@@ -139,10 +139,11 @@ rm Dockerfile
 echo "$username $username" >> $user_table_file
 
 # Create user
+
 useradd -m $username
 usermod -a -G dockertest $username
 usermod -a -G ssh $username
-echo "User $username created on server"
+echo "User $username created on host"
 
 if [ ! -d "/home/$username/.ssh" ]
 then
