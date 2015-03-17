@@ -11,7 +11,7 @@
 # remove - remove continaer
 
 
-version="3.2.27"
+version="3.2.29"
 
 log_file="/docker.log"
 
@@ -96,17 +96,18 @@ getFreePort() {
 
 getMounts() {
     mount_command=""
-    mounts=$(grep $1 $mount_file | awk -F"@" '{ print $2 }')  
+    mounts=$(grep "$1@" $mount_file | awk -F"@" '{ print $2 }')
     if [ -z "$mounts" ]
-    then 
-        echo ""
+    then
+        echo "No mounts"
         exit 0
-    fi      
+    fi
     IFS=';' read -ra mounts_arr <<< "$mounts"
     for mnt in "${mounts_arr[@]}"
     do
         mount_command="$mount_command-v=$mnt "
-    done                   
+        echo "mount: $mount_command"
+    done
     echo $mount_command
 }
 
@@ -193,12 +194,12 @@ if [ "$SSH_ORIGINAL_COMMAND" = port ]
 fi
 
 if [ "$SSH_ORIGINAL_COMMAND" = freeport ]
-    then 
+    then     
+    PORT=$(getFreePort)
     if [ $debuglog -eq 1 ]
     then
-        echo "Return free server port number" >> $log_file
+        echo "Return free server port number $PORT" >> $log_file
     fi 
-    PORT=$(getFreePort)
     echo $PORT
     exit 0
 fi
