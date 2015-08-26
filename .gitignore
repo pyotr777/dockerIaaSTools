@@ -3,3 +3,4 @@
 *.pub
 *.gz
 stracetest
+*_rsa
