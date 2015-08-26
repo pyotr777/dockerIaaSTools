@@ -25,7 +25,7 @@ http://youtu.be/_SvzsBcp5wQ
 
 ## Mounting local directories in containers
 
-It is possible to mount directories from user local computer into user container with the same path. [makeRemote.sh](#makeremotesh) tool should be executed on user computer to mount local direcotory into container. 
+It is possible to mount directories from user local computer into user container with the same path. [connect.sh](#connectsh) tool should be executed on user computer to mount local direcotory into container. 
 
 ![Mounting local direcotries into container](dockerIaaS-mounting.jpg)
 
@@ -145,11 +145,13 @@ This file is called on every SSH connection to a container. It counts SSH connec
 Called by container.sh and stop.sh to stop container in due time - when all active SSH connections to the container are closed.
 
 
-### makeRemote.sh
+### connect.sh
 
 Utility for mounting user local directories into user container on the server and executing commands inside the container. Must be executed on user local computer.
+Whithout remote command can be used to login to the container with X11 forwarding. This makes possible to use GUI applications inside the container. 
 
-Usage: ```makeRemote.sh -u <username> -h <server address> -p <local directory to mount> -k <path to ssh-key> -m <remote command>```
+
+Usage: ```connect.sh -u <username> -h <server address> -p <local directory to mount> -i <path to ssh-key> -m <remote command>```
 
 #### Requires:
 	SSHFS in container 

@@ -37,7 +37,7 @@ trimQuotes() {
   echo "$val"
 }
 
-while getopts "u:h:l:k:m:a:" opt; do
+while getopts "u:h:l:i:k:m:a:" opt; do
   case $opt in
     u)
       remoteuser=$(trimQuotes "$OPTARG")
