@@ -11,7 +11,7 @@
 # remove - remove continaer
 
 
-version="3.2.31"
+version="3.2.41 scp_sshfs"
 
 log_file="/docker.log"
 
@@ -96,17 +96,17 @@ getFreePort() {
 
 getMounts() {
     mount_command=""
-    mounts=$(grep "$1@" $mount_file | awk -F"@" '{ print $2 }')
+    mounts=$(grep $1 $mount_file | awk -F"@" '{ print $2 }')  
     if [ -z "$mounts" ]
-    then
+    then 
+        echo ""
         exit 0
-    fi
+    fi      
     IFS=';' read -ra mounts_arr <<< "$mounts"
     for mnt in "${mounts_arr[@]}"
     do
         mount_command="$mount_command-v=$mnt "
-        echo "mount: $mount_command"
-    done
+    done                   
     echo $mount_command
 }
 
@@ -193,12 +193,12 @@ if [ "$SSH_ORIGINAL_COMMAND" = port ]
 fi
 
 if [ "$SSH_ORIGINAL_COMMAND" = freeport ]
-    then     
-    PORT=$(getFreePort)
+    then 
     if [ $debuglog -eq 1 ]
     then
-        echo "Return free server port number $PORT" >> $log_file
+        echo "Return free server port number" >> $log_file
     fi 
+    PORT=$(getFreePort)
     echo $PORT
     exit 0
 fi
@@ -245,12 +245,11 @@ then
 
         # Run container
         mounts=$(getMounts $USER)
-        echo "Mouts: $mounts" >> $log_file
 		# Permissions to mount with sshfs inside container
 		moptions=""
 		if [ "permit_mounts" ]
 		then
-		    moptions=" --cap-add SYS_ADMIN --device /dev/fuse"
+		    moptions=" --cap-add SYS_ADMIN --device /dev/fuse --security-opt apparmor:unconfined"
 	    fi
         options="run -d --name $cont_name $mounts $moptions -P $image"
         cont=$($dockercommand $options)
@@ -308,12 +307,37 @@ case "$container_action" in
     ;;
 esac
 
-commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
-if [ $debuglog -eq 1 ]
-then
-    echo "${commands[@]}" >> $log_file
+# SCP
+if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]]
+# if [ "true" ]
+    then 
+    # echo "SCP detected  at $(pwd)" >> $log_file
+    
+    # This works
+    # strace -s 2000 -f $SSH_ORIGINAL_COMMAND
+
+    commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
+    # if [ $debuglog -eq 1 ]
+    # then
+        # echo "${commands[@]}" >> $log_file
+    # fi
+    "${commands[@]}"
+    
+    # c_path="/home/nic/control_local"
+    # echo "Creating controlpath at $c_path" >> $log_file
+    # ssh -p "$PORT" -A -f -N -M -S "$c_path" -o StrictHostKeyChecking=no root@localhost >> $log_file &  
+    # echo "SSH master connected $!" >> $log_file
+    # ssh -S $c_path -p $PORT -O check root@localhot >> $log_file
+    # scp -t -v -o ControlPath=$c_path -p $PORT root@localhost:/ >> $log_file
+    # ssh -S $CONTROLPATH -p $PORT -O exit root@localhot >> $log_file
+else
+    commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
+    if [ $debuglog -eq 1 ]
+    then
+        echo "${commands[@]}" >> $log_file
+    fi
+    "${commands[@]}"
 fi
-"${commands[@]}"
 # -----------------------------
 
 echo "<" $(date) >> $log_file
