@@ -70,6 +70,15 @@ if [ -z "$(cat /etc/group | grep "$diaasgroup:")" ]; then
 		exit 0
 	fi
 	groupadd "$diaasgroup"
+	echo "Group $diaasgroup		created."
 fi
  
-
+# Copy files
+printf "Copy %s" "$forcecommand"
+cp docker.sh "$forcecommand"
+if [[ $? -eq 1 ]]; then
+	printf "\terror.\n"
+	echo "Error: Could not copy file $(pwd)/docker.sh to $forcecommand" 1>&2
+	exit 1
+fi
+printf "\tOK."
