@@ -196,7 +196,7 @@ if [[ $restartssh == "y" ]]; then
 	printf "\n"
 	service ssh restart			
 else
-	prtinf "Please, restart sshd later with \$ sudo service ssh restart\n"
+	printf "Please, restart sshd later with \$ sudo service ssh restart\n"
 fi
 
 echo "Installation comlete."

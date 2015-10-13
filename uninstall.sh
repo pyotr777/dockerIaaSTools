@@ -67,7 +67,7 @@ if [ -a "$ssh_conf" ]; then
 			Match Group $diaasgroup
 				ForceCommand $forcecommand
 		CONF
-		sed '/$conf/d' < "$ssh_conf"
+		sed '/$conf/d' "$ssh_conf"
 		if [[ $? -eq 1 ]]; then
 			printf "error.\n"
 			echo "Error: Could not edit $ssh_conf." 1>&2
