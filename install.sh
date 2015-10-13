@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 
 # Install Docker IaaS tools.
 # Need to be run with root privileges.
@@ -45,7 +45,7 @@ if [[ "$1" == "-c" ]]; then
 	export diaasgroup="$diaasgroup"
 	echo "Variable initialisation		OK"
 	return
-else
+elif [[ -n "$1" ]]; then
 	printf "%s" "$usage"
 	exit 1
 fi
@@ -59,7 +59,7 @@ echo -n "Start installation of Docker IaaS tools? [y/n]"
 read -n 1 start
 
 if [[ $start != "y" ]]; then
-	printf "\n%s" "$usage"
+	printf "\nBye!\n"
 	exit 0
 fi
 
