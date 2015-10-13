@@ -15,6 +15,7 @@ forcecommandlog="/var/log/diaas.log"
 tablesfolder="/var/lib/diaas/"
 #dockercommand="docker -H localhost:4243"
 dockercommand="docker"
+diaasgroup="diaasgroup"
 ### Configuration section end
 
 read -rd '' usage << EOF
@@ -35,7 +36,7 @@ if [ $# -ge 1 ]; then
 fi
 
 if [[ $(id -u) != "0" ]]; then
-	printf "\nError: Must be root to use it.\n" 1>&2
+	printf "Error: Must be root to use it.\n" 1>&2
 	exit 1
 fi
 
@@ -59,5 +60,15 @@ fi
 
 # Check section end
 
-# 
+# Group diaasgroup - create if not exists
+
+if [ -z "$(cat /etc/group | grep "$diaasgroup:")" ]; then
+	echo -n "Creating group $diaasgroup. OK? [y/n]"
+	read -n 1 creategroup
+	if [[ $creategroup != "y" ]]; then
+		echo "Bye!"
+		exit 0
+	fi
+fi
+ 
 
