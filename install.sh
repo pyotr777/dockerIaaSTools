@@ -68,7 +68,7 @@ if [[ $dockerimagesline -eq 0 ]]; then
 	printf "\nError: Cannot connect to Docker with command:\n%s" "$dockercommand" 1>&2
 	exit 1
 elif [[ $dockerimagesline -eq 1 ]]; then
-	printf "\nConnection to Docker	OK."
+	printf "\nConnection to Docker\t\t\tOK."
 else
 	printf "\nSomethings wrong :%s" "$dockerimagesline"
 fi
@@ -78,14 +78,16 @@ printf "\n"
 # Group diaasgroup - create if not exists
 
 if [ -z "$(cat /etc/group | grep "$diaasgroup:")" ]; then
-	echo -n "Creating group $diaasgroup. OK? [y/n]"
+	echo -n "Create group $diaasgroup? [y/n]"
 	read -n 1 creategroup
 	if [[ $creategroup != "y" ]]; then
 		echo "\nBye!\n"
 		exit 0
 	fi
 	groupadd "$diaasgroup"
-	echo "Group $diaasgroup		created."
+	printf "\nGroup $diaasgroup\t\tcreated.\n"
+else
+	printf "Group $diaasgroup\t\t\texists.\n"
 fi
  
 # Copy files
@@ -96,4 +98,4 @@ if [[ $? -eq 1 ]]; then
 	echo "Error: Could not copy file $(pwd)/docker.sh to $forcecommand" 1>&2
 	exit 1
 fi
-printf "\tOK."
+printf "\t\tOK."

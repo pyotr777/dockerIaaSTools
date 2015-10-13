@@ -40,17 +40,17 @@ fi
 # Group 
 
 if [ -n "$(cat /etc/group | grep "$diaasgroup:")" ]; then
-	echo -n "Remove $diaasgroup. OK? [y/n]"
+	echo -n "Remove $diaasgroup? [y/n]"
 	read -n 1 rmgroup
 	if [[ $rmgroup != "y" ]]; then
 		echo "\nBye!\n"
 		exit 0
 	fi
 	groupdel "$diaasgroup"
-	echo "Group $diaasgroup		Removed."
+	printf "\nGroup $diaasgroup\t\tRemoved.\n"
 fi
 
 # Remove files
 
-deleteFile"$forcecommand" 
+deleteFile "$forcecommand" 
 
