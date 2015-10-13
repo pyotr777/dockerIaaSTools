@@ -80,4 +80,11 @@ else
 	exit 1
 fi
 
+echo "Restart sshd? [y/n]"
+read -n 1 restartssh
+if [[ $restartssh == "y" ]]; then
+	printf "\n"
+	service ssh restart			
+fi
+
 echo "Uninstallation comlete."

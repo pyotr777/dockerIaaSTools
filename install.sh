@@ -160,14 +160,7 @@ fi
 if [ -a "$sshd_pam" ]; then
 	sed -ri 's/^session\s+required\s+pam_loginuid.so$/session optional pam_loginuid.so/' "$sshd_pam"
 	if [[ $? -eq 0 ]]; then
-		printf "%s\t\t\t\tedited.\n(session required pam_loginuid.so -> session optional pam_loginuid.so)\nRestart sshd? [y/n]" "$sshd_pam"
-		read -n 1 restartssh
-		if [[ $restartssh == "y" ]]; then
-			printf "\n"
-			service ssh restart			
-		else
-			prtinf "Please, restart sshd later with \$ sudo service ssh restart\n"
-		fi
+		printf "%s\t\t\t\tedited.\n(session required pam_loginuid.so -> session optional pam_loginuid.so)\n" "$sshd_pam"
 	fi
 fi
 
@@ -195,6 +188,15 @@ if [ -a "$ssh_conf" ]; then
 else
 	echo "Error: SSH configuration file $ssh_conf not found." 1>&2
 	exit 1
+fi
+
+echo "Restart sshd? [y/n]"
+read -n 1 restartssh
+if [[ $restartssh == "y" ]]; then
+	printf "\n"
+	service ssh restart			
+else
+	prtinf "Please, restart sshd later with \$ sudo service ssh restart\n"
 fi
 
 echo "Installation comlete."
