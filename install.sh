@@ -53,11 +53,11 @@ if [[ $dockerimagesline -eq 0 ]]; then
 	printf "\nError: Cannot connect to Docker with command:\n%s" "$dockercommand" 1>&2
 	exit 1
 elif [[ $dockerimagesline -eq 1 ]]; then
-	printf "\nConnection to Docker	OK. "
+	printf "\nConnection to Docker	OK."
 else
 	printf "\nSomethings wrong :%s" "$dockerimagesline"
 fi
-
+printf "\n"
 # Check section end
 
 # Group diaasgroup - create if not exists
@@ -66,9 +66,10 @@ if [ -z "$(cat /etc/group | grep "$diaasgroup:")" ]; then
 	echo -n "Creating group $diaasgroup. OK? [y/n]"
 	read -n 1 creategroup
 	if [[ $creategroup != "y" ]]; then
-		echo "Bye!"
+		echo "\nBye!\n"
 		exit 0
 	fi
+	groupadd "$diaasgroup"
 fi
  
 
