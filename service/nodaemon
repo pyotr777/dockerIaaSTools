@@ -11,7 +11,7 @@ version="3.1.0"
 stop_file="/tmp/dockeriaas_nostop"
 counter_file="/tmp/dockeriaas_cc"
 
-echo "Stop $version $stop_file"
+echo "$0 v$version $stop_file"
 exec 20<>$stop_file
 flock -x -w 2 20
 echo "0" > $stop_file

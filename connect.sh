@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 # Mount local folder into container on a server.
 # To be executed on user local computer.
@@ -12,7 +12,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2015 RIKEN AICS. All rights reserved
 
-version="0.28"
+version="0.29"
 debug="1"
 
 usage="Usage:\nconnect.sh -u <username> -h <server address> -p <server port number> \
@@ -28,9 +28,9 @@ hostIP="172.17.42.1"  # server IP as seen from inside containers
 remote_commands=""
 add_path="/opt/omnixmp/bin"
 
-echo "$0 ver.$version"
+echo "$0 v$version"
 if [ $debug ]; then 
-	echo "Called with parameters: $@"
+	echo "Called with parameters: $@."
 fi
 
 # Trim quotes around a string
@@ -77,6 +77,11 @@ while getopts "u:h:l:i:k:m:a:p:" opt; do
 	esac
 done
 
+if [ -z "$path" ]
+	then
+	path=$(pwd)
+	echo "Use current folder: $path"
+fi
 
 # Check that necessary arguments provided
 
@@ -94,43 +99,31 @@ if [ -z "$server" ]
 	exit 1
 fi
 
-if [ -z "$path" ]
-	then
-	path=$(pwd)
-	echo "Use current folder: $path"
-fi
-
-if [ -n "$ssh_key" ]
-	then
+if [ -n "$ssh_key" ]; then
 	key_in_ssh_add=$(ssh-add -l | grep $ssh_key | wc -l)
-	if [ $key_in_ssh_add -le 0 ] 
-		then
+	if [ $key_in_ssh_add -le 0 ]; then
 		echo "Add SSH_KEY $ssh_key to agent."
 		ssh-add $ssh_key
 		ssh_key_added=1
 	fi
-	keyoption="-i $ssh_key"	
+	keyoption="-i $ssh_key"
 fi
 
 SSH_PARAMETERS="-A $server_port $remoteuser@$server"
 
 container_port=$(ssh $SSH_PARAMETERS port 2>/dev/null)
-
-if [ $container_port="null" ]
-	then
+if [ $container_port="null" ]; then
 	if [ $debug ]; then
 		echo "Starting container in daemon mode ($SSH_PARAMETERS)"
 	fi
 	ssh $SSH_PARAMETERS "daemon" 2>/dev/null
 	container_started="true"
 	container_port=$(ssh $SSH_PARAMETERS port 2>/dev/null)
-	if [ -z $container_port ]
-		then
+	if [ -z $container_port ]; then
 		echo "Could not reach container. Check the address, user name, connection, ..."
 		exit 1
 	fi
 fi
-
 
 free_port=$(ssh $SSH_PARAMETERS freeport 2>/dev/null)
 
@@ -147,8 +140,20 @@ echo "tunnel PID=$ssh_tunnel"
 # ssh
 if [ -z "$remote_commands" ]
 then  # No commands -- interactive shell login
-	remote_commands="mkdir -p \"$path\"\nsshfs -o StrictHostKeyChecking=no,UserKnownHostsFile=/dev/null,nonempty -p $free_port $local_user@$hostIP:$path $path\ncd \"$path\"\necho \"ver \$version\";pwd;ls -l;export PATH=\$PATH:$add_path;"
-	#echo -e $remote_commands
+	read -rd ''  remote_commands <<- RCOM
+	mkdir -p "$path"
+	sshfs -o StrictHostKeyChecking=no,UserKnownHostsFile=/dev/null,nonempty -p $free_port $local_user@$hostIP:$path
+	cd "$path"
+	echo "v$version";
+	pwd;
+	ls -l;
+	export PATH="\$PATH:$add_path";
+RCOM
+	#remote_commands="mkdir -p \"$path\"\nsshfs -o StrictHostKeyChecking=no,UserKnownHostsFile=/dev/null,nonempty -p $free_port $local_user@$hostIP:$path $path\ncd \"$path\"\necho \"ver \$version\";pwd;ls -l;export PATH=\$PATH:$add_path;"
+	printf "%s" "$remote_commands"
+	exit 1
+
+
 
 	# Save remote commands to a file. Execute it in container. 
 	cmd_file="rcom.sh"
@@ -215,7 +220,7 @@ rm $cmd_file
 # Stop container if it was started or unmount local folder
 if [ -n "$container_started" ]
 then
-	ssh $SSH_PARAMETERS "stopnow" 2>/dev/null
+	ssh $SSH_PARAMETERS "nodaemon" 2>/dev/null
 	echo "Container will stop now"
 else
 	# Unmount SSHFS mount

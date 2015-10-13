@@ -22,23 +22,22 @@
 #  Copyright (C) 2014 RIKEN AICS. All rights reserved
 
 version="3.2.27"
-echo "createuser.sh $version"
+echo "$0 v$version"
 
 # Initialization
 if [ $# -lt 1 ]
 then
-    read -r -d '' hlp <<-'EOF'
+    read -r -d '' hlp <<- "EOF"
 	Creates user with designated SSH key, creates Docker image "localhost/username".
 	Makes set up for automatic user login to the container
 	with SSH and agent forwarding.
 
-Parameters:
+	Parameters:
 	user name,
 	Docker image name to use for container,
 	file with public SSH key,
-
 EOF
-    echo "$hlp"
+    printf  "%s" "$hlp"
     exit 0
 fi
 
