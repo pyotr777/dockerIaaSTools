@@ -85,17 +85,45 @@ if [ -z "$(cat /etc/group | grep "$diaasgroup:")" ]; then
 		exit 0
 	fi
 	groupadd "$diaasgroup"
-	printf "\nGroup $diaasgroup\t\tcreated.\n"
+	printf "\nGroup $diaasgroup\t\t\tcreated.\n"
 else
 	printf "Group $diaasgroup\t\t\texists.\n"
 fi
  
 # Copy files
-printf "Copy %s" "$forcecommand"
+printf "Copy %s\t\t" "$forcecommand"
 cp docker.sh "$forcecommand"
 if [[ $? -eq 1 ]]; then
-	printf "\terror.\n"
+	printf "error.\n"
 	echo "Error: Could not copy file $(pwd)/docker.sh to $forcecommand" 1>&2
 	exit 1
 fi
-printf "\t\tOK."
+printf "OK.\n"
+
+if [ ! -a "$forcecommandlog" ]; then
+	printf "Create %s\t\t" "$forcecommandlog"
+	touch "$forcecommandlog"
+	if [[ $? -eq 1 ]]; then
+		printf "error.\n"
+		echo "Error: Could not create $forcecommandlog." 1>&2
+		exit 1
+	fi
+	printf "OK.\n"
+fi
+
+
+if [ ! -d "$tablesfolder" ]; then 
+	if [ -f "$tablesfolder" ]; then
+		echo "Error: $tablesfolder exists, but is a regular file. Need directory." 1>&2
+		exit 1
+	fi
+	printf "Create %s\t\t" "$tablesfolder"
+	mkdir -p "$tablesfolder"
+	if [[ $? -eq 1 ]]; then
+		printf "error.\n"
+		echo "Error: Could not create $tablesfolder." 1>&2
+		exit 1
+	fi
+	printf "OK.\n"
+fi
+

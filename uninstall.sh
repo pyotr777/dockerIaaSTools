@@ -22,17 +22,17 @@ deleteFile() {
 	echo -n "Delete file $file? [y/n]"
 	read -n 1 delfile
 	if [[ $delfile != "y" ]]; then
-		echo "\nBye!\n"
+		printf "\nBye!\n"
 		exit 0
 	fi
-	printf "Delete %s" "$file"
-	rm $file
+	printf "\n%s\t\t\t\t" "$file"
+	rm -rf $file
 	if [[ $? -eq 1 ]]; then
 		printf "\terror.\n"
-		echo "Error: Could not delete file $file" 1>&2
+		echo "Error: Could not delete $file." 1>&2
 		exit 1
 	fi
-	printf "\tOK."
+	printf "deleted.\n"
 fi
 
 }
@@ -43,7 +43,7 @@ if [ -n "$(cat /etc/group | grep "$diaasgroup:")" ]; then
 	echo -n "Remove $diaasgroup? [y/n]"
 	read -n 1 rmgroup
 	if [[ $rmgroup != "y" ]]; then
-		echo "\nBye!\n"
+		printf "\nBye!\n"
 		exit 0
 	fi
 	groupdel "$diaasgroup"
@@ -53,4 +53,7 @@ fi
 # Remove files
 
 deleteFile "$forcecommand" 
-
+deleteFile "$forcecommandlog"
+if [ -d "$tablesfolder" ]; then 
+	deleteFile "$tablesfolder" 
+fi
