@@ -21,8 +21,10 @@ diaasgroup="diaasgroup"
 read -rd '' usage << EOF
 Installation script for Docker IaaS tools v$version
 
-Usage: \$ sudo $0
-
+Usage: \$ sudo $0 [-c]
+Options: 
+	-c print configuration variables and exit (can be used with source command). 
+	This option does not require root privileges.
 Docker IaaS tools requirements: bash, Docker, socat, jq.
 Required OS: Ubuntu, Debian.
 EOF
@@ -30,9 +32,22 @@ EOF
 # Check section
 # Exit if something's wrong
 
-if [ $# -ge 1 ]; then
+if [ $# -gt 2 ]; then
 	printf "%s" "$usage"
 	exit 0
+fi
+
+if [[ "$1" == "-c" ]]; then 
+	export forcecommand="$forcecommand"
+	export forcecommandlog="$forcecommandlog"
+	export tablesfolder="$tablesfolder"
+	export dockercommand="$dockercommand"
+	export diaasgroup="$diaasgroup"
+	echo "Variable initialisation		OK"
+	return
+else
+	printf "%s" "$usage"
+	exit 1
 fi
 
 if [[ $(id -u) != "0" ]]; then
