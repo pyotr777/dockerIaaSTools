@@ -12,10 +12,14 @@ debug=1
 #### Configuration section
 forcecommand="/usr/local/bin/diaas.sh"
 forcecommandlog="/var/log/diaas.log"
-tablesfolder="/var/lib/diaas/"
+tablesfolder="/var/lib/diaas"
+mountfile="$tablesfolder/mounttable.txt"
+usersfile="$tablesfolder/userstable.txt"
 #dockercommand="docker -H localhost:4243"
 dockercommand="docker"
 diaasgroup="diaasgroup"
+ssh_conf="/etc/ssh/sshd_config"
+sshd_pam="/etc/pam.d/sshd"
 ### Configuration section end
 
 read -rd '' usage << EOF
@@ -43,7 +47,9 @@ if [[ "$1" == "-c" ]]; then
 	export tablesfolder="$tablesfolder"
 	export dockercommand="$dockercommand"
 	export diaasgroup="$diaasgroup"
-	echo "Variable initialisation		OK"
+	export ssh_conf=$ssh_conf
+	export sshd_pam=$sshd_pam
+	echo "Variable initialisation			OK"
 	return
 elif [[ -n "$1" ]]; then
 	printf "%s" "$usage"
@@ -127,3 +133,65 @@ if [ ! -d "$tablesfolder" ]; then
 	printf "OK.\n"
 fi
 
+if [ ! -a "$mountfile" ]; then
+	printf "Create %s\t\t" "$mountfile"
+	touch "$mountfile"
+	if [[ $? -eq 1 ]]; then
+		printf "error.\n"
+		echo "Error: Could not create $mountfile." 1>&2
+		exit 1
+	fi
+	printf "OK.\n"
+fi
+
+if [ ! -a "$usersfile" ]; then
+	printf "Create %s\t\t" "$usersfile"
+	touch "$usersfile"
+	if [[ $? -eq 1 ]]; then
+		printf "error.\n"
+		echo "Error: Could not create $usersfile." 1>&2
+		exit 1
+	fi
+	printf "OK.\n"
+fi
+
+
+# Edit config files
+if [ -a "$sshd_pam" ]; then
+	sed -ri 's/^session\s+required\s+pam_loginuid.so$/session optional pam_loginuid.so/' "$sshd_pam"
+	if [[ $? -eq 0 ]]; then
+		printf "%s\t\t\t\tedited.\n(session required pam_loginuid.so -> session optional pam_loginuid.so)\nRestart sshd? [y/n]" "$sshd_pam"
+		read -n 1 restartssh
+		if [[ $restartssh == "y" ]]; then
+			printf "\n"
+			service ssh restart			
+		else
+			prtinf "Please, restart sshd later with \$ sudo service ssh restart\n"
+		fi
+	fi
+fi
+
+
+if [ -a "$ssh_conf" ]; then
+	if [ ! grep "$diaasgroup" "$ssh_conf" ]; then
+		printf "Edit %s\t\t" "$ssh_conf"
+		read -rd '' newconf <<- CONF
+			AllowAgentForwarding yes
+
+			Match Group $diaasgroup
+				ForceCommand $forcecommand
+		CONF
+		printf "%s" "$newconf" >> $ssh_conf
+		if [[ $? -eq 1 ]]; then
+			printf "error.\n"
+			echo "Error: Could not edit $ssh_conf." 1>&2
+			exit 1
+		fi
+		printf "OK.\n"
+	fi
+else
+	echo "Error: SSH configuration file $ssh_conf not found." 1>&2
+	exit 1
+fi
+
+echo "Installation comlete."

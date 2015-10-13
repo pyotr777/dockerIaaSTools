@@ -19,22 +19,21 @@ source ./install.sh -c
 deleteFile() {
 	file=$1
 	if [ -a "$file" ]; then
-	echo -n "Delete file $file? [y/n]"
-	read -n 1 delfile
-	if [[ $delfile != "y" ]]; then
-		printf "\nBye!\n"
-		exit 0
+		echo -n "Delete $file? [y/n]"
+		read -n 1 delfile
+		if [[ $delfile != "y" ]]; then
+			printf "\nBye!\n"
+			exit 0
+		fi
+		printf "\n%s\t\t" "$file"
+		rm -rf $file
+		if [[ $? -eq 1 ]]; then
+			printf "error.\n"
+			echo "Error: Could not delete $file." 1>&2
+			exit 1
+		fi
+		printf "deleted.\n"
 	fi
-	printf "\n%s\t\t\t\t" "$file"
-	rm -rf $file
-	if [[ $? -eq 1 ]]; then
-		printf "\terror.\n"
-		echo "Error: Could not delete $file." 1>&2
-		exit 1
-	fi
-	printf "deleted.\n"
-fi
-
 }
 
 # Group 
@@ -47,7 +46,7 @@ if [ -n "$(cat /etc/group | grep "$diaasgroup:")" ]; then
 		exit 0
 	fi
 	groupdel "$diaasgroup"
-	printf "\nGroup $diaasgroup\t\tRemoved.\n"
+	printf "\nGroup %s\t\t\tremoved.\n" "$diaasgroup"
 fi
 
 # Remove files
@@ -57,3 +56,28 @@ deleteFile "$forcecommandlog"
 if [ -d "$tablesfolder" ]; then 
 	deleteFile "$tablesfolder" 
 fi
+
+# Edit SSH config file
+if [ -a "$ssh_conf" ]; then
+	if [ grep "$diaasgroup" "$ssh_conf" ]; then
+		printf "Edit %s\t\t" "$ssh_conf"
+		read -rd '' conf <<- CONF
+			AllowAgentForwarding yes
+
+			Match Group $diaasgroup
+				ForceCommand $forcecommand
+		CONF
+		sed '/$conf/d' < "$ssh_conf"
+		if [[ $? -eq 1 ]]; then
+			printf "error.\n"
+			echo "Error: Could not edit $ssh_conf." 1>&2
+			exit 1
+		fi
+		echo "OK."
+	fi
+else
+	echo "Error: SSH configuration file $ssh_conf not found." 1>&2
+	exit 1
+fi
+
+echo "Uninstallation comlete."
