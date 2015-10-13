@@ -59,7 +59,7 @@ fi
 
 # Edit SSH config file
 if [ -a "$ssh_conf" ]; then
-	if [ grep "$diaasgroup" "$ssh_conf" ]; then
+	if grep -q "$diaasgroup" "$ssh_conf"; then
 		printf "Edit %s\t\t" "$ssh_conf"
 		read -rd '' conf <<- CONF
 			AllowAgentForwarding yes

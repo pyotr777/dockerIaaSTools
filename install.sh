@@ -173,7 +173,10 @@ fi
 
 
 if [ -a "$ssh_conf" ]; then
-	if [ ! grep "$diaasgroup" "$ssh_conf" ]; then
+	if grep -q "$diaasgroup" "$ssh_conf"; then
+		# do nothing
+		echo "$ssh_conf already edited."
+	else
 		printf "Edit %s\t\t" "$ssh_conf"
 		read -rd '' newconf <<- CONF
 			AllowAgentForwarding yes
