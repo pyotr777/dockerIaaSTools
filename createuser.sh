@@ -27,7 +27,7 @@ echo "$0 v$version"
 # Initialization
 if [ $# -lt 1 ]
 then
-    read -r -d '' hlp <<- "EOF"
+    read -rd '' hlp <<- EOF
 	Creates user with designated SSH key, creates Docker image "localhost/username".
 	Makes set up for automatic user login to the container
 	with SSH and agent forwarding.
@@ -35,9 +35,13 @@ then
 	Parameters:
 	user name,
 	Docker image name to use for container,
-	file with public SSH key,
+	file with public SSH key.
+
+
 EOF
-    printf  "%s" "$hlp"
+    printf  "%s\n" "$hlp"
+    ./users.sh
+    echo " ..."
     exit 0
 fi
 
@@ -160,7 +164,7 @@ chown -R $username:$username /home/$username/
 
 # Check TCP connection to Docker remote API
 # Required for automatic login to container
-dockercommand="docker -H localhost:4243"
+#dockercommand="docker -H localhost:4243"
 test=$($dockercommand ps)
 if [ -z "$test" ]
 then

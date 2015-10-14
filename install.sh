@@ -6,10 +6,13 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.31a02"
+version="0.31a03"
 debug=1
 
-#### Configuration section
+### Configuration section
+diaasconfig="diaas_installed.conf"
+
+##### These variables saved to the above file
 forcecommand="/usr/local/bin/diaas.sh"
 forcecommandlog="/var/log/diaas.log"
 tablesfolder="/var/lib/diaas"
@@ -42,7 +45,8 @@ if [ $# -gt 2 ]; then
 	exit 0
 fi
 
-if [[ "$1" == "-c" ]]; then 
+# Write variables to config file diaas_installed.conf
+cat > $diaasconfig <<- CONF
 	export forcecommand="$forcecommand"
 	export forcecommandlog="$forcecommandlog"
 	export tablesfolder="$tablesfolder"
@@ -53,7 +57,11 @@ if [[ "$1" == "-c" ]]; then
 	export ssh_conf=$ssh_conf
 	export sshd_pam=$sshd_pam
 	export sshd_config_patch=$sshd_config_patch
-	echo "Variable initialisation			OK"
+CONF
+echo "Configuration saved to file $diaasconfig"
+
+if [[ "$1" == "-c" ]]; then 
+	export diaasconfig="$diaasconfig"
 	return
 elif [[ -n "$1" ]]; then
 	printf "%s" "$usage"
@@ -198,7 +206,7 @@ if [[ $restartssh == "y" ]]; then
 	printf "\n"
 	service ssh restart			
 else
-	printf "Please, restart sshd later with \$ sudo service ssh restart\n"
+	printf "\nPlease, restart sshd later with\n\$ sudo service ssh restart\n"
 fi
 
 echo "Installation comlete."

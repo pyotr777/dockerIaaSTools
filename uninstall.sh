@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.31a02"
+version="0.31a03"
 debug=1
 
 if [[ $(id -u) != "0" ]]; then
@@ -15,6 +15,7 @@ if [[ $(id -u) != "0" ]]; then
 fi
 
 source ./install.sh -c
+source $diaasconfig
 
 deleteFile() {
 	file=$1
@@ -84,5 +85,9 @@ if [[ $restartssh == "y" ]]; then
 	printf "\n"
 	service ssh restart			
 fi
+
+# Remove DIaaS config file
+rm $diaasconfig
+echo "Configuration file $diaasconfig deleted."
 
 echo "Uninstallation comlete."
