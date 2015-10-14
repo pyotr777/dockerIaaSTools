@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.31a01"
+version="0.31a02"
 debug=1
 
 #### Configuration section
@@ -172,7 +172,7 @@ if [ -a "$ssh_conf" ]; then
 		# do nothing
 		echo "$ssh_conf already patched."
 	else
-		printf "Patch %s\t\t" "$ssh_conf"
+		printf "Patch %s\n" "$ssh_conf"
 		cp "$sshd_config_patch" "tmp_$sshd_config_patch"
 		sed -i 's/$diaasgroup/diaasgroup/' "tmp_$sshd_config_patch"
 		sed -i 's/$forcecommand/forcecommand/' "tmp_$sshd_config_patch"
@@ -182,7 +182,8 @@ if [ -a "$ssh_conf" ]; then
 			echo "Error: Could not patch $ssh_conf." 1>&2
 			exit 1
 		fi
-		printf "OK.\n"
+		rm "tmp_$sshd_config_patch"
+		echo "OK."
 	fi
 else
 	echo "Error: SSH configuration file $ssh_conf not found." 1>&2
