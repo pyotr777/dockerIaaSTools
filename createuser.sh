@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 #  Creates user with designated key, creates Docker container with user name.
 #  Makes set up for automatic user login to the container
@@ -36,12 +36,11 @@ then
 	user name,
 	Docker image name to use for container,
 	file with public SSH key.
-
+	. 
 
 EOF
     printf  "%s\n" "$hlp"
     ./users.sh
-    echo " ..."
     exit 0
 fi
 
@@ -151,7 +150,7 @@ echo "$username $username" >> $usersfile
 # Create user
 
 useradd -m $username
-usermod -a -G dockertest $username
+usermod -a -G $diaasgroup $username
 usermod -a -G ssh $username
 echo "User $username created on host"
 
