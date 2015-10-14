@@ -185,8 +185,8 @@ if [ -a "$ssh_conf" ]; then
 	else
 		printf "Patch %s\n" "$ssh_conf"
 		cp "$sshd_config_patch" "tmp_$sshd_config_patch"
-		sed -i 's/$diaasgroup/diaasgroup/' "tmp_$sshd_config_patch"
-		sed -i 's/$forcecommand/forcecommand/' "tmp_$sshd_config_patch"
+		sed -i "s/\$diaasgroup/$diaasgroup/" "tmp_$sshd_config_patch"
+		sed -i "s/\$forcecommand/$forcecommand/" "tmp_$sshd_config_patch"
 		patch "$ssh_conf" < "tmp_$sshd_config_patch"
 		if [[ $? -eq 1 ]]; then
 			echo "error."
