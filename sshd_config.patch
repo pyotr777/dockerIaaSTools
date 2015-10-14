@@ -1,0 +1,5 @@
+89a90,93
+> AllowAgentForwarding yes
+> 
+> Match Group $diaasgroup
+> 	ForceCommand $forcecommand

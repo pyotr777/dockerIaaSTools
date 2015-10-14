@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.30"
+version="0.31a01"
 debug=1
 
 #### Configuration section
@@ -20,6 +20,7 @@ dockercommand="docker"
 diaasgroup="diaasgroup"
 ssh_conf="/etc/ssh/sshd_config"
 sshd_pam="/etc/pam.d/sshd"
+sshd_config_patch="sshd_config.patch"
 ### Configuration section end
 
 read -rd '' usage << EOF
@@ -49,6 +50,7 @@ if [[ "$1" == "-c" ]]; then
 	export diaasgroup="$diaasgroup"
 	export ssh_conf=$ssh_conf
 	export sshd_pam=$sshd_pam
+	export sshd_config_patch=$sshd_config_patch
 	echo "Variable initialisation			OK"
 	return
 elif [[ -n "$1" ]]; then
@@ -168,19 +170,16 @@ fi
 if [ -a "$ssh_conf" ]; then
 	if grep -q "$diaasgroup" "$ssh_conf"; then
 		# do nothing
-		echo "$ssh_conf already edited."
+		echo "$ssh_conf already patched."
 	else
-		printf "Edit %s\t\t" "$ssh_conf"
-		read -rd '' newconf <<- CONF
-			AllowAgentForwarding yes
-
-			Match Group $diaasgroup
-				ForceCommand $forcecommand
-		CONF
-		printf "%s" "$newconf" >> $ssh_conf
+		printf "Patch %s\t\t" "$ssh_conf"
+		cp "$sshd_config_patch" "tmp_$sshd_config_patch"
+		sed -i 's/$diaasgroup/diaasgroup/' "tmp_$sshd_config_patch"
+		sed -i 's/$forcecommand/forcecommand/' "tmp_$sshd_config_patch"
+		patch "$ssh_conf" < "tmp_$sshd_config_patch"
 		if [[ $? -eq 1 ]]; then
-			printf "error.\n"
-			echo "Error: Could not edit $ssh_conf." 1>&2
+			echo "error."
+			echo "Error: Could not patch $ssh_conf." 1>&2
 			exit 1
 		fi
 		printf "OK.\n"
