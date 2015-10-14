@@ -1,4 +1,4 @@
-# Tools for creating a basic Infrastructure-as-a-Service (v3.2.27)
+# Tools for creating a basic Infrastructure-as-a-Service
 
 This is a set of bash-script files for creating a basic single-host IaaS on a Linux server. 
 The purpose is to give every user a personal virtual machine in the form of a docker container (http://docker.com). Users’ containers can be built from any docker image. Users have root privileges inside their containers. User can change and save their container. 
@@ -12,15 +12,51 @@ When host administrator creates a user, the following actions are performed:
 * A user created on the host (server) and added to groups "dockertest" and "ssh". Every user of IaaS must be a member of "dockertest" group. "ssh" group can be used to restrict ssh login to the server only to this group members.
 * A docker image for the user is built.
 
-For instructions on creating users see [createuser.sh](#createusersh).
-
-## Scheme
+For installation and usage instructions see [Usage](#usage-instructions).
 
 ![Scheme](docker-IaaS.jpg)
 
 ## Demonstration video
 
 http://youtu.be/_SvzsBcp5wQ
+
+# Usage instructions
+
+## Setup on the server machine
+
+Docker IaaS Tools provide installation and unistallation scripts for server-side setups.
+To install run:
+```
+$ sudo ./install.sh
+```
+To uninstall:
+```
+$ sudo ./uninstall.sh
+```
+Both scripts provide detailed information on what is being done. 
+
+## Creating new users
+
+A new user is created with the following command:
+```
+$ sudo ./createuser.sh <username> <docker image name> <path to public ssh key> 
+```
+This will create a new user on the serve machine. When the new user will access the server with ssh he/she will be seamlessly redirected to a private Docker container created from the provided image. User must have his private ssh key saved in ssh agent with:
+```
+ssh-add <path to private ssh key>
+```
+SSH command should be:
+```
+ssh -A <username>@<server URL>
+```
+
+## Removing users
+
+To remove a user and his/her container use:
+```
+$ sudo ./cleanuser <username>
+```
+on the server machine. 
 
 
 ## Mounting local directories in containers
@@ -37,21 +73,6 @@ K-scope is a Java application for static and dynamic analysis of Fortran sorce c
 K-scope is developed by RIKEN AICS Software Development Team.   
 http://www.aics.riken.jp/ungi/soft/kscope/  
 http://github.com/K-scope/K-scope
-
-## Set up on the server machine
-
-SSH key forwarding must be enabled on the server. 
-Force command must be set for dockertest group.
-docker.sh file must be placed in the server root directory.
-
-In /etc/ssh/sshd_config:
-
-```
-AllowAgentForwarding yes
-
-Match Group dockertest
-  ForceCommand /docker.sh
-```
 
 ## SSH commands
 
@@ -102,7 +123,7 @@ Command is to be run inside a container to stop the container immediately.
 
 Removes user on the server and removes user's containers.
 
-#### Sample usage:
+##### Sample usage:
 
 ```bash
 sudo ./cleanuser.sh usernic
@@ -113,21 +134,20 @@ sudo ./cleanuser.sh usernic
 
 Creates user on the server and builds user's docker image, set up the server for automatic login into container with SSH key. 
 
-#### Arguments:
+##### Arguments:
 	user name
 	docker image
 	public SSH key file
 	
 	
-#### Requires:
+##### Requires:
 	jq
     
-#### Sample usage:
+##### Sample usage:
 
 ```bash
 sudo ./createuser.sh usernic ubuntu:latest user_ssh_key
 ```
-
 
 ### docker.sh
 
@@ -150,8 +170,7 @@ Called by container.sh and stop.sh to stop container in due time - when all acti
 Utility for mounting user local directories into user container on the server and executing commands inside the container. Must be executed on user local computer.
 Whithout remote command can be used to login to the container with X11 forwarding. This makes possible to use GUI applications inside the container. 
 
-
 Usage: ```connect.sh -u <username> -h <server address> -p <local directory to mount> -i <path to ssh-key> -m <remote command>```
 
-#### Requires:
+##### Requires:
 	SSHFS in container 
