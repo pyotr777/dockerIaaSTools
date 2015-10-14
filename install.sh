@@ -45,6 +45,26 @@ if [ $# -gt 2 ]; then
 	exit 0
 fi
 
+if [[ "$1" == "-c" ]]; then 
+	export diaasconfig="$diaasconfig"
+	return
+elif [[ -n "$1" ]]; then
+	printf "%s" "$usage"
+	exit 1
+fi
+
+if [[ $(id -u) != "0" ]]; then
+	printf "Error: Must be root to use it.\n" 1>&2
+	exit 1
+fi
+
+echo -n "Start installation of Docker IaaS tools? [y/n]"
+read -n 1 start
+if [[ $start != "y" ]]; then
+	printf "\nBye!\n"
+	exit 0
+fi
+
 # Write variables to config file diaas_installed.conf
 read -rd '' conf <<- CONF
 	export forcecommand="$forcecommand"
@@ -61,26 +81,6 @@ CONF
 su $SUDO_USER -c "printf \"%s\" \"$conf\" > $diaasconfig"
 echo "Configuration saved to file $diaasconfig"
 
-if [[ "$1" == "-c" ]]; then 
-	export diaasconfig="$diaasconfig"
-	return
-elif [[ -n "$1" ]]; then
-	printf "%s" "$usage"
-	exit 1
-fi
-
-if [[ $(id -u) != "0" ]]; then
-	printf "Error: Must be root to use it.\n" 1>&2
-	exit 1
-fi
-
-echo -n "Start installation of Docker IaaS tools? [y/n]"
-read -n 1 start
-
-if [[ $start != "y" ]]; then
-	printf "\nBye!\n"
-	exit 0
-fi
 
 dockerimagesline=$($dockercommand images 2>/dev/null | grep IMAGE | wc -l)
 if [[ $dockerimagesline -eq 0 ]]; then
