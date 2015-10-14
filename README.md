@@ -3,13 +3,12 @@
 This is a set of bash-script files for creating a basic single-host IaaS on a Linux server. 
 The purpose is to give every user a personal virtual machine in the form of a docker container (http://docker.com). Users’ containers can be built from any docker image. Users have root privileges inside their containers. User can change and save their container. 
 
-Users are created on the server machine, every user is assigned one container. Service users are added to dockertest group. 
-When a service user connects to the server with SSH he/she automatically logins into his/her container. It is absolutely seamless for users. 
+Users are created on the server machine, every user is assigned one container. Service users are added to a group (named "diaasgroup" by default). When a service user connects to the server with ssh he/she automatically logins into his/her container. It is absolutely seamless for users. 
 
-Authentication is based on ssh-key and key forwarding. SSH-key authentication and key-forwarding for the server must be enabled on the user side. 
+Authentication is based on ssh-key and key forwarding. SSH-key should be saved in an ssh agent on user machine. 
 
-When host administrator creates a user, the following actions are performed:
-* A user created on the host (server) and added to groups "dockertest" and "ssh". Every user of IaaS must be a member of "dockertest" group. "ssh" group can be used to restrict ssh login to the server only to this group members.
+When server machine administrator creates a user, the following actions are performed:
+* A user created on the host (server) and added to groups "diaasgroup" (name can be changed) and "ssh". Every user of IaaS must be a member of "diaasgroup". "ssh" group can be used to restrict ssh login to the server only to this group members.
 * A docker image for the user is built.
 
 For installation and usage instructions see [Usage](#usage-instructions).
