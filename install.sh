@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.31a03"
+version="0.31a04"
 debug=1
 
 ### Configuration section
@@ -46,7 +46,7 @@ if [ $# -gt 2 ]; then
 fi
 
 # Write variables to config file diaas_installed.conf
-cat > $diaasconfig <<- CONF
+read -rd '' conf <<- CONF
 	export forcecommand="$forcecommand"
 	export forcecommandlog="$forcecommandlog"
 	export tablesfolder="$tablesfolder"
@@ -58,6 +58,7 @@ cat > $diaasconfig <<- CONF
 	export sshd_pam=$sshd_pam
 	export sshd_config_patch=$sshd_config_patch
 CONF
+su $SUDO_USER -c "printf \"%s\" \"$conf\" > $diaasconfig"
 echo "Configuration saved to file $diaasconfig"
 
 if [[ "$1" == "-c" ]]; then 
