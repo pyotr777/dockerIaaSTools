@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.30"
+version="0.31a01"
 debug=1
 
 if [[ $(id -u) != "0" ]]; then
@@ -60,17 +60,14 @@ fi
 # Edit SSH config file
 if [ -a "$ssh_conf" ]; then
 	if grep -q "$diaasgroup" "$ssh_conf"; then
-		printf "Edit %s\t\t" "$ssh_conf"
-		read -rd '' conf <<- CONF
-			AllowAgentForwarding yes
-
-			Match Group $diaasgroup
-				ForceCommand $forcecommand
-		CONF
-		sed '/$conf/d' "$ssh_conf"
+		pprintf "Patch %s\t\t" "$ssh_conf"
+		cp "$sshd_config_patch" "tmp_$sshd_config_patch"
+		sed -i 's/$diaasgroup/diaasgroup/' "tmp_$sshd_config_patch"
+		sed -i 's/$forcecommand/forcecommand/' "tmp_$sshd_config_patch"
+		patch -R "$ssh_conf" < "tmp_$sshd_config_patch"
 		if [[ $? -eq 1 ]]; then
-			printf "error.\n"
-			echo "Error: Could not edit $ssh_conf." 1>&2
+			echo "error."
+			echo "Error: Could not patch $ssh_conf." 1>&2
 			exit 1
 		fi
 		echo "OK."
