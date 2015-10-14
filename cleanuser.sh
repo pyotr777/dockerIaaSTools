@@ -11,13 +11,18 @@
 #  Created by Peter Bryzgalov
 #  Copyright (c) 2014 RIKEN AICS.
 
-version="3.1.3"
+version="3.3b01"
 
 if [[ -z $1 ]]
 	then
 	echo "Enter user name to delete."
 	echo "Users:"
-	echo "$(./users)"
+	echo "$(./users.sh)"
+	exit 1
+fi
+
+if [[ $(id -u) != "0" ]]; then
+	printf "Error: Must be root to use it.\n" 1>&2
 	exit 1
 fi
 
@@ -25,8 +30,10 @@ usr=$1
 container=$usr
 image="localhost/$usr"
 
+source ./install.sh -c
+
 echo "Delete user $usr v.$version"
-user_table_file="/var/usertable.txt"
+
 
 userExists() {
     awk -F":" '{ print $1 }' /etc/passwd | grep -x $1 > /dev/null
@@ -55,10 +62,10 @@ then
 	echo $out
 fi
 
-# remove record from user_table_file
-echo "Removing record from $user_table_file"
+# remove record from usersfile
+echo "Removing record from $usersfile"
 pattern="^$usr\s+$usr$"
-test=$(grep -E "$pattern" $user_table_file)
+test=$(grep -E "$pattern" $usersfile)
 
 if [ -z "$test" ]
 then
@@ -66,7 +73,7 @@ then
 	exit 1
 fi
 
-sed -r -i "/$pattern/d" $user_table_file
+sed -r -i "/$pattern/d" $usersfile
 echo "User $usr removed"
 
 echo "Removing user on host"

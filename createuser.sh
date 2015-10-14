@@ -21,7 +21,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014 RIKEN AICS. All rights reserved
 
-version="3.2.27"
+version="3.3b01"
 echo "$0 v$version"
 
 # Initialization
@@ -41,11 +41,18 @@ EOF
     exit 0
 fi
 
+if [[ $(id -u) != "0" ]]; then
+    printf "Error: Must be root to use it.\n" 1>&2
+    exit 1
+fi
+
 username=$1
 image=$2
 public_key_file=$3
 
-user_table_file="/var/usertable.txt"
+source ./install.sh -c
+
+# In-container locations
 container_connections_counter="/tmp/dockeriaas_cc"
 container_config="/tmp/dockeriaas_conf"
 container_home="/root"
@@ -135,7 +142,7 @@ docker build -t localhost/$username .
 rm Dockerfile
 
 # Register user and conatiner names in user table file
-echo "$username $username" >> $user_table_file
+echo "$username $username" >> $usersfile
 
 # Create user
 

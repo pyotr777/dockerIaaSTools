@@ -46,6 +46,8 @@ if [[ "$1" == "-c" ]]; then
 	export forcecommand="$forcecommand"
 	export forcecommandlog="$forcecommandlog"
 	export tablesfolder="$tablesfolder"
+	export mountfile="$mountfile"
+	export usersfile="$usersfile"
 	export dockercommand="$dockercommand"
 	export diaasgroup="$diaasgroup"
 	export ssh_conf=$ssh_conf
