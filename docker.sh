@@ -3,13 +3,12 @@
 # Start container if it's not running.
 # Run commands inside user container.
 #
-# Created by Peter Bryzgalov
-# Copyright (c) 2013-2014 RIKEN AICS.
-#
 # Special commands (SSH_ORIGINAL_COMMAND):
 # commit - commit container
 # remove - remove continaer
-
+#
+# Created by Peter Bryzgalov
+# Copyright (c) 2013-2015 RIKEN AICS.
 
 version="0.31a09 scp_sshfs"
 

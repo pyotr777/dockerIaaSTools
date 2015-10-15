@@ -83,6 +83,7 @@ read -rd '' conf <<- CONF
 	export ssh_conf=$ssh_conf
 	export sshd_pam=$sshd_pam
 	export sshd_config_patch=$sshd_config_patch
+	export format="$format"
 CONF
 su $SUDO_USER -c "printf \"%s\" \"$conf\" > $diaasconfig"
 echo "Configuration saved to file $diaasconfig"

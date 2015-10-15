@@ -9,13 +9,14 @@
 #  user name
 #
 #  Created by Peter Bryzgalov
-#  Copyright (c) 2014 RIKEN AICS.
+#  Copyright (c) 2014-2015 RIKEN AICS.
 
-version="3.3b01"
+version="0.31a09"
 
 if [[ -z $1 ]]
 	then
-	echo "Enter user name to delete."
+	echo "$0 $version"
+	echo "Need user name to delete."
 	echo "Users:"
 	echo "$(./users.sh)"
 	exit 1
@@ -31,9 +32,7 @@ container=$usr
 image="localhost/$usr"
 
 source ./install.sh -c
-
-echo "Delete user $usr v.$version"
-
+source $diaasconfig
 
 userExists() {
     awk -F":" '{ print $1 }' /etc/passwd | grep -x $1 > /dev/null
@@ -41,44 +40,42 @@ userExists() {
 }
 
 
-echo "Removing container $container"
-
-out=$(docker kill $container 2>&1) 
-if [[ $out == *Error* ]]
-then
-	echo $out	
+if [[ "$($dockercommand ps | grep -q $container)" ]]; then
+	out="$($dockercommand kill $container 2>&1)"
+	if [[ $out == *Error* ]]
+	then
+		echo "Errors while stopping container $container"
+		echo $out 	
+	fi
 fi
 
-out=$(docker rm $container 2>&1)
+out="$($dockercommand rm $container 2>&1)"
 if [[ $out == *Error* ]]
 then
+	echo "Errors while deleting container $container"
 	echo $out    
 fi
 
-echo "Removing image $image"
-out=$(docker rmi $image 2>&1)
+out="$($dockercommand rmi $image 2>&1)"
 if [[ $out == *Error* ]]
 then
 	echo $out
 fi
 
-# remove record from usersfile
-echo "Removing record from $usersfile"
+# delete record from usersfile
 pattern="^$usr\s+$usr$"
 test=$(grep -E "$pattern" $usersfile)
-
 if [ -z "$test" ]
 then
-	echo "Record for $usr not found"
+	echo "DIaaS user $usr not found"
 	exit 1
 fi
 
 sed -r -i "/$pattern/d" $usersfile
-echo "User $usr removed"
+printf "$format" "DIaaS user $usr" "deleted"
 
-echo "Removing user on host"
 deluser --remove-home $usr
+printf "$format" "OS user $usr" "deleted"
 
-echo "Removing group on host"
 groupdel $usr
-
+printf "$format" "OS group $usr" "deleted"

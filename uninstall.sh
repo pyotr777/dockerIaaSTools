@@ -17,9 +17,6 @@ fi
 source ./install.sh -c
 source $diaasconfig
 
-# Define output format
-format="%-50s %-20s\n"
-
 deleteFile() {
 	file=$1
 	if [ -a "$file" ]; then
@@ -44,7 +41,7 @@ deleteFile() {
 deleteUser() {
 	username=$1
 	./cleanuser.sh $username
-	printf "User %s deleted.\n" "$username"
+	printf "$format" "User $username" "deleted"
 }
 
 # Delete users
