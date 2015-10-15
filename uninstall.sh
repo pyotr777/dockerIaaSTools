@@ -15,6 +15,10 @@ if [[ $(id -u) != "0" ]]; then
 fi
 
 source ./install.sh -c
+if [ ! -a "$diaasconfig" ]; then
+	echo "Configuration file not found. DIaaS may not have been installed."
+	exit 1
+fi
 source $diaasconfig
 
 deleteFile() {
