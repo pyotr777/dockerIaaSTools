@@ -73,17 +73,17 @@ format="%-50s %-20s\n"
 
 # Write variables to config file diaas_installed.conf
 read -rd '' conf <<- CONF
-	export forcecommand="$forcecommand"
-	export forcecommandlog="$forcecommandlog"
-	export tablesfolder="$tablesfolder"
-	export mountfile="$mountfile"
-	export usersfile="$usersfile"
-	export dockercommand="$dockercommand"
-	export diaasgroup="$diaasgroup"
-	export ssh_conf="$ssh_conf"
-	export sshd_pam="$sshd_pam"
-	export sshd_config_patch="$sshd_config_patch"
-	export format="$format"
+forcecommand="$forcecommand"
+forcecommandlog="$forcecommandlog"
+tablesfolder="$tablesfolder"
+mountfile="$mountfile"
+usersfile="$usersfile"
+dockercommand="$dockercommand"
+diaasgroup="$diaasgroup"
+ssh_conf="$ssh_conf"
+sshd_pam="$sshd_pam"
+sshd_config_patch="$sshd_config_patch"
+format="$format"
 CONF
 su $SUDO_USER -c "touch $diaasconfig"
 printf "%s" "$conf" > $diaasconfig
@@ -176,7 +176,7 @@ if [ -f "$sshd_pam" ]; then
 	if [[ $? -eq 0 ]]; then
 		printf "$format"  "$sshd_pam" "edited"
 		echo "(session required pam_loginuid.so -> session optional pam_loginuid.so)"
-		echo "sshd_pam_edited=edited" >> $diaasconfig
+		printf "\n%s" "sshd_pam_edited=edited" >> $diaasconfig
 	fi
 fi
 
