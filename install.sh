@@ -70,8 +70,6 @@ fi
 
 # Define output format
 format="%-50s %-20s\n"
-# Export format
-expformat="%-50s %-20s\\n"
 
 # Write variables to config file diaas_installed.conf
 read -rd '' conf <<- CONF
@@ -82,12 +80,13 @@ read -rd '' conf <<- CONF
 	export usersfile="$usersfile"
 	export dockercommand="$dockercommand"
 	export diaasgroup="$diaasgroup"
-	export ssh_conf=$ssh_conf
-	export sshd_pam=$sshd_pam
-	export sshd_config_patch=$sshd_config_patch
-	export format="$expformat"
+	export ssh_conf="$ssh_conf"
+	export sshd_pam="$sshd_pam"
+	export sshd_config_patch="$sshd_config_patch"
+	export format="$format"
 CONF
-su $SUDO_USER -c "printf \"%s\" \"$conf\" > $diaasconfig"
+su $SUDO_USER -c "touch $diaasconfig"
+printf "%s" "$conf" > $diaasconfig
 echo "Configuration saved to file $diaasconfig"
 
 
