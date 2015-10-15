@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.31a04"
+version="0.31a05"
 debug=1
 
 if [[ $(id -u) != "0" ]]; then
@@ -36,6 +36,25 @@ deleteFile() {
 		printf "deleted.\n"
 	fi
 }
+
+deleteUser() {
+	username=$1
+	./cleanuser.sh $username
+	printf "User %s deleted.\n" "$username"
+}
+
+# Delete users
+users=$(cat $usersfile | wc -l)
+if [ $users -ge 1 ]; then
+	echo -n "Remove users? [y/n]"
+	read -n 1 rmusers
+	if [[ $rmgroup == "y" ]]; then
+		for userline in $(cat $usersfile); do
+			IFS=":" read -ra userarray <<< "$userline"
+			deteteUser ${userarray[1]}
+		done
+	fi
+fi
 
 # Group 
 

@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.31a04"
+version="0.31a05"
 debug=1
 
 ### Configuration section
@@ -64,6 +64,7 @@ if [[ $start != "y" ]]; then
 	printf "\nBye!\n"
 	exit 0
 fi
+printf "\n"
 
 # Write variables to config file diaas_installed.conf
 read -rd '' conf <<- CONF
