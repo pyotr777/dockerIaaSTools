@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.31a05"
+version="0.31a07"
 debug=1
 
 if [[ $(id -u) != "0" ]]; then
@@ -48,10 +48,12 @@ users=$(cat $usersfile | wc -l)
 if [ $users -ge 1 ]; then
 	echo -n "Remove users? [y/n]"
 	read -n 1 rmusers
-	if [[ $rmgroup == "y" ]]; then
-		for userline in $(cat $usersfile); do
-			IFS=":" read -ra userarray <<< "$userline"
-			deteteUser ${userarray[1]}
+	printf "\n"
+	if [[ $rmusers == "y" ]]; then
+		mapfile -t userlines <<< "$(cat $usersfile)"
+		for userline in "${userlines[@]}"; do
+			read -ra userarray <<< "$userline"
+			deteteUser ${userarray[0]}
 		done
 	fi
 fi

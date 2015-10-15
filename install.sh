@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.31a06"
+version="0.31a07"
 debug=1
 
 ### Configuration section
@@ -178,11 +178,16 @@ if [ -a "$sshd_pam" ]; then
 	fi
 fi
 
-
+# Patch /etc/ssh/sshd_conf
 if [ -a "$ssh_conf" ]; then
 	if grep -q "$diaasgroup" "$ssh_conf"; then
 		# do nothing
 		echo "$ssh_conf already patched."
+	elif grep -qi "forcecommand" "$ssh_conf"; then
+		echo "$ssh_conf already has ForceCommand. Add the following:"
+		echo "AllowAgentForwarding yes"
+		echo "Match Group $diaasgroup"
+		echo "	ForceCommand $forcecommand"
 	else
 		printf "Patch %s\n" "$ssh_conf"
 		text="$(cat $sshd_config_patch)"
