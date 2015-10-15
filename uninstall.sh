@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.31a11"
+version="0.32a01"
 debug=1
 
 if [[ $(id -u) != "0" ]]; then
@@ -23,14 +23,7 @@ source $diaasconfig
 
 deleteFile() {
 	file=$1
-	if [ -f "$file" ]; then
-		echo -n "Delete $file? [y/n]"
-		read -n 1 delfile
-		printf "\n"
-		if [[ $delfile != "y" ]]; then
-			printf "Bye!\n"
-			exit 0
-		fi
+	if [ -a "$file" ]; then
 		rm -rf $file
 		if [[ $? -eq 1 ]]; then
 			echo "Error: Could not delete $file." 1>&2
@@ -77,13 +70,8 @@ fi
 
 # Remove files
 deleteFile "$forcecommand" 
-printf "$format" "$forcecommand"  "deleted"
 deleteFile "$forcecommandlog"
-printf "$format" "$forcecommandlog"  "deleted"
-if [ -d "$tablesfolder" ]; then 
-	deleteFile "$tablesfolder" 
-	printf "$format" "$tablesfolder"  "deleted"
-fi
+deleteFile "$tablesfolder" 
 
 # Edit SSH config file
 if [ -f "$ssh_conf" ]; then
@@ -95,7 +83,7 @@ if [ -f "$ssh_conf" ]; then
 				exit 1
 			fi
 			rm "tmp_$sshd_config_patch"
-			printf "$format" "Unpatch $ssh_conf" "OK"
+			printf "$format" "$ssh_conf" "restored"
 		fi
 	fi
 else
@@ -107,7 +95,7 @@ fi
 if [ -n "$sshd_pam_edited" ]; then
 	sed -ri 's/^session\s+optional\s+pam_loginuid.so$/session    required      pam_loginuid.so/' "$sshd_pam"
 	if [[ $? -eq 0 ]]; then
-		printf "$format"  "$sshd_pam" "edited"
+		printf "$format"  "$sshd_pam" "restored"
 		echo "(session optional pam_loginuid.so -> session required pam_loginuid.so)"
 	fi
 fi
@@ -121,6 +109,12 @@ fi
 
 # Remove DIaaS config file
 rm $diaasconfig
-printf "$format" "Configuration file $diaasconfig" "deleted"
+printf "$format" "$diaasconfig" "deleted"
+
+# Kill socat
+if [[ -n $socatpid ]]; then
+	kill $socatpid
+	printf "$format" "socat proxy" "killed"	
+fi
 
 echo "Uninstallation comlete."

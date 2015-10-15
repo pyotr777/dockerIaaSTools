@@ -11,7 +11,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (c) 2014-2015 RIKEN AICS.
 
-version="0.31a11"
+version="0.32a01"
 
 if [[ -z $1 ]]
 	then
@@ -40,7 +40,7 @@ userExists() {
 }
 
 
-if grep -q "$container" <<<"$($dockercommand ps)" ]]; then
+if grep -q "$container" <<<"$($dockercommand ps)"; then
 	out="$($dockercommand kill $container 2>&1)"
 	if [[ $out == *Error* ]]
 	then
@@ -78,4 +78,6 @@ deluser --remove-home $usr
 printf "$format" "OS user $usr" "deleted"
 
 groupdel $usr
-printf "$format" "OS group $usr" "deleted"
+if [[ $? -eq 0 ]]; then
+	printf "$format" "OS group $usr" "deleted"
+fi

@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.31a10"
+version="0.32a01"
 debug=1
 
 ### Configuration section
@@ -18,8 +18,8 @@ forcecommandlog="/var/log/diaas.log"
 tablesfolder="/var/lib/diaas"
 mountfile="$tablesfolder/mounttable.txt"
 usersfile="$tablesfolder/userstable.txt"
-#dockercommand="docker -H localhost:4243"
-dockercommand="docker"
+dockercommand="docker -H localhost:4243"
+#dockercommand="docker"
 diaasgroup="diaasgroup"
 ssh_conf="/etc/ssh/sshd_config"
 sshd_pam="/etc/pam.d/sshd"
@@ -39,7 +39,6 @@ EOF
 
 # Check section
 # Exit if something's wrong
-
 if [ $# -gt 2 ]; then
 	printf "%s" "$usage"
 	exit 0
@@ -66,10 +65,18 @@ if [[ $start != "y" ]]; then
 	exit 0
 fi
 
-
-
 # Define output format
 format="%-50s %-20s\n"
+
+./socat-start.sh
+if [ ! -f socat.pid ]; then
+	printf "$format"  "socat" "failed"
+	exit 1
+fi
+socatpid=$(cat socat.pid)
+rm socat.pid
+echo $socatpid
+printf "$format"  "socat" "started with PID $socatpid"
 
 # Write variables to config file diaas_installed.conf
 read -rd '' conf <<- CONF
@@ -84,6 +91,7 @@ ssh_conf="$ssh_conf"
 sshd_pam="$sshd_pam"
 sshd_config_patch="$sshd_config_patch"
 format="$format"
+socatpid="$socatpid"
 CONF
 su $SUDO_USER -c "touch $diaasconfig"
 printf "%s" "$conf" > $diaasconfig
@@ -119,22 +127,25 @@ else
 fi
  
 # Copy files
-cp docker.sh "$forcecommand"
+cp docker.sh $forcecommand
 if [[ $? -eq 1 ]]; then
 	echo "Error: Could not copy file $(pwd)/docker.sh to $forcecommand" 1>&2
 	exit 1
 fi
 # Replace filename with full path to install.sh in docker.sh
-sed -ri "s#source installsh#source $(pwd)/install.sh -c#" "$forcecommand"
+sed -ri "s#source diaasconfig#source $(pwd)/$diaasconfig#" "$forcecommand"
 printf "$format" "Copy $forcecommand" "OK"
 
 if [ ! -f "$forcecommandlog" ]; then
-	touch "$forcecommandlog"
+	touch $forcecommandlog
+	chmod a+w $forcecommandlog
 	if [[ $? -eq 1 ]]; then
 		echo "Error: Could not create $forcecommandlog." 1>&2
 		exit 1
 	fi
 	printf "$format" "Create $forcecommandlog" "OK"
+else 
+	printf "$format" "$forcecommandlog" "exists"
 fi
 
 
@@ -143,30 +154,39 @@ if [ ! -d "$tablesfolder" ]; then
 		echo "Error: $tablesfolder exists, but is a regular file. Need directory." 1>&2
 		exit 1
 	fi
-	mkdir -p "$tablesfolder"
+	mkdir -p $tablesfolder
+	chmod a+w "$tablesfolder"
 	if [[ $? -eq 1 ]]; then
 		echo "Error: Could not create $tablesfolder." 1>&2
 		exit 1
 	fi
 	printf "$format" "Create $tablesfolder" "OK"
+else
+	printf "$format" "$tablesfolder" "exists"
 fi
 
 if [ ! -f "$mountfile" ]; then
-	touch "$mountfile"
+	touch $mountfile
+	chmod a+w "$mountfile"
 	if [[ $? -eq 1 ]]; then
 		echo "Error: Could not create $mountfile." 1>&2
 		exit 1
 	fi
 	printf "$format" "Create $mountfile" "OK"
+else
+	printf "$format" "$mountfile" "exists"
 fi
 
 if [ ! -f "$usersfile" ]; then
-	touch "$usersfile"
+	touch $usersfile
+	chmod +w "$usersfile"
 	if [[ $? -eq 1 ]]; then
 		echo "Error: Could not create $usersfile." 1>&2
 		exit 1
 	fi
 	printf "$format" "Create $usersfile" "OK"
+else
+	printf "$format" "$usersfile" "exists"
 fi
 
 

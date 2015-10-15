@@ -10,12 +10,9 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 RIKEN AICS.
 
-version="0.31a11 scp_sshfs"
+version="0.32a01 scp_sshfs"
 
-source installsh
-source $diaasconfig
-
-log_file=$forecommandlog
+source diaasconfig
 
 # mount table file lists folders, that should be mount on container startup (docker run command)
 # file format:
@@ -44,7 +41,7 @@ getPort() {
 	PORT=$($dockercommand inspect $cont_name | jq .[0].NetworkSettings.Ports | jq '.["'"$1"'"]' | jq -r .[0].HostPort)
 	if [ $debuglog -eq 1 ]
 	then
-		echo "Port mapping $cont_port->$PORT" >> $log_file
+		echo "Port mapping $cont_port->$PORT" >> $forcecommandlog
 	fi
 	echo $PORT
 }
@@ -96,106 +93,90 @@ getFreePort() {
 getMounts() {
     mount_command=""
     mounts=$(grep $1 $mountfile | awk -F"@" '{ print $2 }')  
-    if [ -z "$mounts" ]
-    then 
+    if [ -z "$mounts" ]; then 
         echo ""
         exit 0
     fi      
     IFS=';' read -ra mounts_arr <<< "$mounts"
-    for mnt in "${mounts_arr[@]}"
-    do
+    for mnt in "${mounts_arr[@]}"; do
         mount_command="$mount_command-v=$mnt "
     done                   
     echo $mount_command
 }
 
 
-if [ ! -w $log_file ];
-then
-    touch $log_file
+if [ ! -w $forcecommandlog ];then
+    touch $forcecommandlog
 fi
-if [ ! -f $usersfile ];
-then
-    echo "Cannot find file $usersfile" >> $log_file
+
+if [ ! -f $usersfile ];then
+    echo "Cannot find file $usersfile" >> $forcecommandlog
     exit 1;
 fi
 
-echo "$0 $version" >> $log_file
-echo "----- start -----" >> $log_file
-date >> $log_file
-echo "ORC: $SSH_ORIGINAL_COMMAND" >> $log_file
-if [ $debuglog -eq 1 ]
-then
-    echo "USR: $USER" >> $log_file
-    echo "CON: $SSH_CONNECTION" >> $log_file
+echo "$0 $version" >> $forcecommandlog
+echo "----- start -----" >> $forcecommandlog
+date >> $forcecommandlog
+echo "ORC: $SSH_ORIGINAL_COMMAND" >> $forcecommandlog
+if [ $debuglog -eq 1 ]; then
+    echo "USR: $USER" >> $forcecommandlog
+    echo "CON: $SSH_CONNECTION" >> $forcecommandlog
 fi
 
 # Get user container name from table in file usersfile
 cont_name=$(grep -E "^$USER " $usersfile| awk '{ print $2 }')
-if [ -z "$cont_name" ] 
-then
+if [ -z "$cont_name" ]; then
     echo "No user $USER registered here." >&2
     exit 1
 fi
 
 image="localhost/$USER"
 
-if [ $debuglog -eq 1 ]
-then
-    echo "User container: $cont_name, Image: $image" >> $log_file
+if [ $debuglog -eq 1 ]; then
+    echo "User container: $cont_name, Image: $image" >> $forcecommandlog
 fi
 
 # Check SSH_ORIGINAL_COMMAND
 
-if [ "$SSH_ORIGINAL_COMMAND" = commit ]
-    then 
-    if [ $debuglog -eq 1 ]
-    then
-        echo "Commit container $cont_name" >> $log_file
+if [ "$SSH_ORIGINAL_COMMAND" = commit ]; then 
+    if [ $debuglog -eq 1 ]; then
+        echo "Commit container $cont_name" >> $forcecommandlog
     fi    
     command="$dockercommand commit $cont_name $image"
     $command
     exit 0
 fi
 
-if [ "$SSH_ORIGINAL_COMMAND" = stop ]
-    then 
-    if [ $debuglog -eq 1 ]
-    then
-        echo "Stop container $cont_name" >> $log_file
+if [ "$SSH_ORIGINAL_COMMAND" = stop ]; then
+    if [ $debuglog -eq 1 ]; then
+        echo "Stop container $cont_name" >> $forcecommandlog
     fi 
     command="$dockercommand kill $cont_name"
     $command
     exit 0
 fi
 
-if [ "$SSH_ORIGINAL_COMMAND" = remove ]
-    then 
-    if [ $debuglog -eq 1 ]
-    then
-        echo "Remove container $cont_name" >> $log_file
+if [ "$SSH_ORIGINAL_COMMAND" = remove ]; then
+    if [ $debuglog -eq 1 ]; then
+        echo "Remove container $cont_name" >> $forcecommandlog
     fi 
     command="$dockercommand rm $cont_name"
     $command
     exit 0
 fi
 
-if [ "$SSH_ORIGINAL_COMMAND" = port ]
-    then 
-    if [ $debuglog -eq 1 ]
-    then
-        echo "Return container $cont_name ssh port number" >> $log_file
+if [ "$SSH_ORIGINAL_COMMAND" = port ]; then
+    if [ $debuglog -eq 1 ]; then
+        echo "Return container $cont_name ssh port number" >> $forcecommandlog
     fi 
     PORT=$(getPort "22/tcp")
     echo $PORT
     exit 0
 fi
 
-if [ "$SSH_ORIGINAL_COMMAND" = freeport ]
-    then 
-    if [ $debuglog -eq 1 ]
-    then
-        echo "Return free server port number" >> $log_file
+if [ "$SSH_ORIGINAL_COMMAND" = freeport ]; then
+    if [ $debuglog -eq 1 ]; then
+        echo "Return free server port number" >> $forcecommandlog
     fi 
     PORT=$(getFreePort)
     echo $PORT
@@ -215,7 +196,7 @@ container_action=""
 ps=$(eval "$dockercommand ps" | grep "$cont_name ")
 if [ "$ps" ] && [ $debuglog -eq 1 ]
 then
-    echo "Container is running" >> $log_file
+    echo "Container is running" >> $forcecommandlog
 fi
 
 
@@ -226,20 +207,20 @@ then
     then
         if [ $debuglog -eq 1 ]
             then
-            echo "Container is stopped" >> $log_file
+            echo "Container is stopped" >> $forcecommandlog
         fi
         #   Start container
         cont=$($dockercommand start $cont_name)
         if [ $debuglog -eq 1 ]
             then
-            echo "Start container $cont" >> $log_file
+            echo "Start container $cont" >> $forcecommandlog
         fi
         container_action="start"
         sleep 1
     else 
         if [ $debuglog -eq 1 ]
             then
-            echo "No container. Run from image." >> $log_file
+            echo "No container. Run from image." >> $forcecommandlog
         fi
 
         # Run container
@@ -254,7 +235,7 @@ then
         cont=$($dockercommand $options)
         if [ $debuglog -eq 1 ]
             then
-            echo "Start container $cont with command: $options" >> $log_file
+            echo "Start container $cont with command: $options" >> $forcecommandlog
         fi
         container_action="run"
         sleep 1
@@ -263,7 +244,7 @@ then
     #   get running container port number
     PORT=$(getPort "22/tcp")
     sshcommand=( ssh -p "$PORT" -A -o StrictHostKeyChecking=no root@localhost )
-    echo "started container with open port $PORT" >> $log_file    
+    echo "started container with open port $PORT" >> $forcecommandlog    
 fi
 
 
@@ -275,7 +256,7 @@ then
     sshcommand=( ssh -p "$PORT" -A -o StrictHostKeyChecking=no root@localhost )
 fi
 
-echo "> $(date)" >> $log_file
+echo "> $(date)" >> $forcecommandlog
 
 # Execute commands in container
 # -----------------------------
@@ -287,8 +268,8 @@ case "$container_action" in
         commands=( "${sshcommand[@]}" "$command1" )
         if [ $debuglog -eq 1 ]
         then
-            echo "setting environment variables" >> $log_file
-            echo "${commands[@]}" >> $log_file
+            echo "setting environment variables" >> $forcecommandlog
+            echo "${commands[@]}" >> $forcecommandlog
         fi
         "${commands[@]}"
     ;;
@@ -299,8 +280,8 @@ case "$container_action" in
     	commands=( "${sshcommand[@]}" "$command1; $command2" )
     	if [ $debuglog -eq 1 ]
     	then
-    		echo "setting environment variables" >> $log_file
-    	    echo "${commands[@]}" >> $log_file
+    		echo "setting environment variables" >> $forcecommandlog
+    	    echo "${commands[@]}" >> $forcecommandlog
     	fi
     	"${commands[@]}"
     ;;
@@ -310,7 +291,7 @@ esac
 if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]]
 # if [ "true" ]
     then 
-    # echo "SCP detected  at $(pwd)" >> $log_file
+    # echo "SCP detected  at $(pwd)" >> $forcecommandlog
     
     # This works
     # strace -s 2000 -f $SSH_ORIGINAL_COMMAND
@@ -318,26 +299,26 @@ if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]]
     commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
     # if [ $debuglog -eq 1 ]
     # then
-        # echo "${commands[@]}" >> $log_file
+        # echo "${commands[@]}" >> $forcecommandlog
     # fi
     "${commands[@]}"
     
     # c_path="/home/nic/control_local"
-    # echo "Creating controlpath at $c_path" >> $log_file
-    # ssh -p "$PORT" -A -f -N -M -S "$c_path" -o StrictHostKeyChecking=no root@localhost >> $log_file &  
-    # echo "SSH master connected $!" >> $log_file
-    # ssh -S $c_path -p $PORT -O check root@localhot >> $log_file
-    # scp -t -v -o ControlPath=$c_path -p $PORT root@localhost:/ >> $log_file
-    # ssh -S $CONTROLPATH -p $PORT -O exit root@localhot >> $log_file
+    # echo "Creating controlpath at $c_path" >> $forcecommandlog
+    # ssh -p "$PORT" -A -f -N -M -S "$c_path" -o StrictHostKeyChecking=no root@localhost >> $forcecommandlog &  
+    # echo "SSH master connected $!" >> $forcecommandlog
+    # ssh -S $c_path -p $PORT -O check root@localhot >> $forcecommandlog
+    # scp -t -v -o ControlPath=$c_path -p $PORT root@localhost:/ >> $forcecommandlog
+    # ssh -S $CONTROLPATH -p $PORT -O exit root@localhot >> $forcecommandlog
 else
     commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
     if [ $debuglog -eq 1 ]
     then
-        echo "${commands[@]}" >> $log_file
+        echo "${commands[@]}" >> $forcecommandlog
     fi
     "${commands[@]}"
 fi
 # -----------------------------
 
-echo "<" $(date) >> $log_file
-echo " " >> $log_file
+echo "<" $(date) >> $forcecommandlog
+echo " " >> $forcecommandlog
