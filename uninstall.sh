@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.31a10"
+version="0.31a11"
 debug=1
 
 if [[ $(id -u) != "0" ]]; then
@@ -23,7 +23,7 @@ source $diaasconfig
 
 deleteFile() {
 	file=$1
-	if [ -a "$file" ]; then
+	if [ -f "$file" ]; then
 		echo -n "Delete $file? [y/n]"
 		read -n 1 delfile
 		printf "\n"
@@ -31,14 +31,12 @@ deleteFile() {
 			printf "Bye!\n"
 			exit 0
 		fi
-		printf "%s\t\t" "$file"
 		rm -rf $file
 		if [[ $? -eq 1 ]]; then
-			printf "error.\n"
 			echo "Error: Could not delete $file." 1>&2
 			exit 1
 		fi
-		printf "deleted.\n"
+		printf "$format" "$file" "deleted"
 	fi
 }
 
@@ -88,9 +86,9 @@ if [ -d "$tablesfolder" ]; then
 fi
 
 # Edit SSH config file
-if [ -a "$ssh_conf" ]; then
+if [ -f "$ssh_conf" ]; then
 	if grep -q "$diaasgroup" "$ssh_conf"; then
-		if [ -a "tmp_$sshd_config_patch" ]; then
+		if [ -f "tmp_$sshd_config_patch" ]; then
 			patch -R "$ssh_conf" < "tmp_$sshd_config_patch"
 			if [[ $? -eq 1 ]]; then
 				echo "Error: Could not patch $ssh_conf." 1>&2
@@ -103,6 +101,15 @@ if [ -a "$ssh_conf" ]; then
 else
 	echo "Error: SSH configuration file $ssh_conf not found." 1>&2
 	exit 1
+fi
+
+# Edit /etc/pam.d/sshd
+if [ -n "$sshd_pam_edited" ]; then
+	sed -ri 's/^session\s+optional\s+pam_loginuid.so$/session    required      pam_loginuid.so/' "$sshd_pam"
+	if [[ $? -eq 0 ]]; then
+		printf "$format"  "$sshd_pam" "edited"
+		echo "(session optional pam_loginuid.so -> session required pam_loginuid.so)"
+	fi
 fi
 
 echo "Restart sshd? [y/n]"

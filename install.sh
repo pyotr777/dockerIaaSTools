@@ -128,7 +128,7 @@ fi
 sed -ri "s#^source\s+source installsh#source $(pwd)/install.sh -c#" "$forcecommand"
 printf "$format" "Copy $forcecommand" "OK"
 
-if [ ! -a "$forcecommandlog" ]; then
+if [ ! -f "$forcecommandlog" ]; then
 	touch "$forcecommandlog"
 	if [[ $? -eq 1 ]]; then
 		echo "Error: Could not create $forcecommandlog." 1>&2
@@ -151,7 +151,7 @@ if [ ! -d "$tablesfolder" ]; then
 	printf "$format" "Create $tablesfolder" "OK"
 fi
 
-if [ ! -a "$mountfile" ]; then
+if [ ! -f "$mountfile" ]; then
 	touch "$mountfile"
 	if [[ $? -eq 1 ]]; then
 		echo "Error: Could not create $mountfile." 1>&2
@@ -160,7 +160,7 @@ if [ ! -a "$mountfile" ]; then
 	printf "$format" "Create $mountfile" "OK"
 fi
 
-if [ ! -a "$usersfile" ]; then
+if [ ! -f "$usersfile" ]; then
 	touch "$usersfile"
 	if [[ $? -eq 1 ]]; then
 		echo "Error: Could not create $usersfile." 1>&2
@@ -171,16 +171,17 @@ fi
 
 
 # Edit config files
-if [ -a "$sshd_pam" ]; then
-	sed -ri 's/^session\s+required\s+pam_loginuid.so$/session optional pam_loginuid.so/' "$sshd_pam"
+if [ -f "$sshd_pam" ]; then
+	sed -ri 's/^session\s+required\s+pam_loginuid.so$/session    optional     pam_loginuid.so/' "$sshd_pam"
 	if [[ $? -eq 0 ]]; then
 		printf "$format"  "$sshd_pam" "edited"
 		echo "(session required pam_loginuid.so -> session optional pam_loginuid.so)"
+		echo "sshd_pam_edited=edited" >> $diaasconfig
 	fi
 fi
 
 # Patch /etc/ssh/sshd_conf
-if [ -a "$ssh_conf" ]; then
+if [ -f "$ssh_conf" ]; then
 	if grep -q "$diaasgroup" "$ssh_conf"; then
 		# do nothing
 		printf "$format" "$ssh_conf" "already patched"
