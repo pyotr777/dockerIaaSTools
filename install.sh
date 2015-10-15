@@ -198,7 +198,6 @@ if [ -a "$ssh_conf" ]; then
 			echo "Error: Could not patch $ssh_conf." 1>&2
 			exit 1
 		fi
-		rm "tmp_$sshd_config_patch"
 		echo "OK."
 	fi
 else

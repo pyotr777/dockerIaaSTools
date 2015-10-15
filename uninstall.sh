@@ -53,7 +53,7 @@ if [ $users -ge 1 ]; then
 		mapfile -t userlines <<< "$(cat $usersfile)"
 		for userline in "${userlines[@]}"; do
 			read -ra userarray <<< "$userline"
-			deteteUser ${userarray[0]}
+			deleteUser ${userarray[0]}
 		done
 	fi
 fi
