@@ -70,6 +70,8 @@ fi
 
 # Define output format
 format="%-50s %-20s\n"
+# Export format
+expformat="%-50s %-20s\\n"
 
 # Write variables to config file diaas_installed.conf
 read -rd '' conf <<- CONF
@@ -83,7 +85,7 @@ read -rd '' conf <<- CONF
 	export ssh_conf=$ssh_conf
 	export sshd_pam=$sshd_pam
 	export sshd_config_patch=$sshd_config_patch
-	export format="$format"
+	export format="$expformat"
 CONF
 su $SUDO_USER -c "printf \"%s\" \"$conf\" > $diaasconfig"
 echo "Configuration saved to file $diaasconfig"
