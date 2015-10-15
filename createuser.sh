@@ -11,17 +11,16 @@
 #
 #  User and container names are stored in user tabel file (/usertable.txt).
 #
-#  Use cleanuser.sh with user name for removing user from server,
-#  removing user record from tabel file and removing user container.
+#  Use cleanuser.sh with user name for deleting user from server,
+#  deleting user record from tabel file and deleting user container.
 #
 #  Requires:
-#  sshpass
 #  jq
 #
 #  Created by Peter Bryzgalov
-#  Copyright (C) 2014 RIKEN AICS. All rights reserved
+#  Copyright (C) 2014-2015 RIKEN AICS. All rights reserved
 
-version="3.3b01"
+version="0.31a09"
 echo "$0 v$version"
 
 # Initialization

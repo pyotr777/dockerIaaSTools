@@ -12,7 +12,7 @@
 
 version="0.31a09 scp_sshfs"
 
-source ./install.sh -c
+source installsh
 source $diaasconfig
 
 log_file=$forecommandlog

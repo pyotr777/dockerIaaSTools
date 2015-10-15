@@ -46,7 +46,7 @@ if [ $# -gt 2 ]; then
 fi
 
 if [[ "$1" == "-c" ]]; then 
-	export diaasconfig="$diaasconfig"
+	export diaasconfig="$(pwd)/$diaasconfig"
 	return
 elif [[ -n "$1" ]]; then
 	printf "%s" "$usage"
@@ -123,6 +123,8 @@ if [[ $? -eq 1 ]]; then
 	echo "Error: Could not copy file $(pwd)/docker.sh to $forcecommand" 1>&2
 	exit 1
 fi
+# Replace filename with full path to install.sh in docker.sh
+sed -ri "s#^source\s+source installsh#source $(pwd)/install.sh -c#" "$forcecommand"
 printf "$format" "Copy $forcecommand" "OK"
 
 if [ ! -a "$forcecommandlog" ]; then
