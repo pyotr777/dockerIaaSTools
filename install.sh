@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.31a07"
+version="0.31a08"
 debug=1
 
 ### Configuration section
@@ -66,6 +66,10 @@ if [[ $start != "y" ]]; then
 fi
 printf "\n"
 
+
+# Define output format
+format="%-50s %-20s\n"
+
 # Write variables to config file diaas_installed.conf
 read -rd '' conf <<- CONF
 	export forcecommand="$forcecommand"
@@ -85,12 +89,13 @@ echo "Configuration saved to file $diaasconfig"
 
 dockerimagesline=$($dockercommand images 2>/dev/null | grep IMAGE | wc -l)
 if [[ $dockerimagesline -eq 0 ]]; then
-	printf "\nError: Cannot connect to Docker with command:\n%s" "$dockercommand" 1>&2
+	printf "Error: Cannot connect to Docker with command:\n%s\n" "$dockercommand" 1>&2
 	exit 1
 elif [[ $dockerimagesline -eq 1 ]]; then
-	printf "\nConnection to Docker\t\t\tOK."
+	printf "$format" "Connection to Docker" "OK"
 else
-	printf "\nSomethings wrong :%s" "$dockerimagesline"
+	printf "Somethings wrong :%s\n" "$dockerimagesline"
+	exit 1
 fi
 printf "\n"
 # Check section end
@@ -100,35 +105,33 @@ printf "\n"
 if [ -z "$(cat /etc/group | grep "$diaasgroup:")" ]; then
 	echo -n "Create group $diaasgroup? [y/n]"
 	read -n 1 creategroup
+	printf "\n"
 	if [[ $creategroup != "y" ]]; then
-		echo "\nBye!\n"
+		echo "Bye!"
 		exit 0
 	fi
 	groupadd "$diaasgroup"
-	printf "\nGroup $diaasgroup\t\t\tcreated.\n"
+	printf "$format" "Group $diaasgroup" "created"
 else
-	printf "Group $diaasgroup\t\t\texists.\n"
+	printf "$format" "Group $diaasgroup" "exists"
 fi
  
 # Copy files
-printf "Copy %s\t\t" "$forcecommand"
 cp docker.sh "$forcecommand"
 if [[ $? -eq 1 ]]; then
-	printf "error.\n"
 	echo "Error: Could not copy file $(pwd)/docker.sh to $forcecommand" 1>&2
 	exit 1
 fi
-printf "OK.\n"
+printf "$format" "Copy $forcecommand" "OK"
 
 if [ ! -a "$forcecommandlog" ]; then
 	printf "Create %s\t\t" "$forcecommandlog"
 	touch "$forcecommandlog"
 	if [[ $? -eq 1 ]]; then
-		printf "error.\n"
 		echo "Error: Could not create $forcecommandlog." 1>&2
 		exit 1
 	fi
-	printf "OK.\n"
+	printf "$format" "Create $forcecommandlog" "OK"
 fi
 
 
@@ -137,36 +140,30 @@ if [ ! -d "$tablesfolder" ]; then
 		echo "Error: $tablesfolder exists, but is a regular file. Need directory." 1>&2
 		exit 1
 	fi
-	printf "Create %s\t\t" "$tablesfolder"
 	mkdir -p "$tablesfolder"
 	if [[ $? -eq 1 ]]; then
-		printf "error.\n"
 		echo "Error: Could not create $tablesfolder." 1>&2
 		exit 1
 	fi
-	printf "OK.\n"
+	printf "$format" "Create $tablesfolder" "OK"
 fi
 
 if [ ! -a "$mountfile" ]; then
-	printf "Create %s\t\t" "$mountfile"
 	touch "$mountfile"
 	if [[ $? -eq 1 ]]; then
-		printf "error.\n"
 		echo "Error: Could not create $mountfile." 1>&2
 		exit 1
 	fi
-	printf "OK.\n"
+	printf "$format" "Create $mountfile" "OK"
 fi
 
 if [ ! -a "$usersfile" ]; then
-	printf "Create %s\t\t" "$usersfile"
 	touch "$usersfile"
 	if [[ $? -eq 1 ]]; then
-		printf "error.\n"
 		echo "Error: Could not create $usersfile." 1>&2
 		exit 1
 	fi
-	printf "OK.\n"
+	printf "$format" "Create $usersfile" "OK"
 fi
 
 
@@ -182,23 +179,27 @@ fi
 if [ -a "$ssh_conf" ]; then
 	if grep -q "$diaasgroup" "$ssh_conf"; then
 		# do nothing
-		echo "$ssh_conf already patched."
+		printf "$format" "$ssh_conf" "already patched"
 	elif grep -qi "forcecommand" "$ssh_conf"; then
-		echo "$ssh_conf already has ForceCommand. Add the following:"
+		printf "$format" "$ssh_conf" "already has ForceCommand.\nCheck that it has the following:\n"
 		echo "AllowAgentForwarding yes"
 		echo "Match Group $diaasgroup"
 		echo "	ForceCommand $forcecommand"
+		echo "----------"
+		echo "Fragment of your $ssh_conf file:"
+		grep -C 4 "$diaasgroup" "$ssh_conf"
+		echo -n "Please confirm [press any key]"
+		read -n 1 foo
+		printf "\n"
 	else
-		printf "Patch %s\n" "$ssh_conf"
 		text="$(cat $sshd_config_patch)"
 		eval "cat <<$text" > "tmp_$sshd_config_patch"
 		patch "$ssh_conf" < "tmp_$sshd_config_patch"
 		if [[ $? -eq 1 ]]; then
-			echo "error."
 			echo "Error: Could not patch $ssh_conf." 1>&2
 			exit 1
 		fi
-		echo "OK."
+		printf "$format" "Patch $ssh_conf" "OK"
 	fi
 else
 	echo "Error: SSH configuration file $ssh_conf not found." 1>&2
@@ -207,10 +208,11 @@ fi
 
 echo "Restart sshd? [y/n]"
 read -n 1 restartssh
+printf "\n"
 if [[ $restartssh == "y" ]]; then
 	service ssh restart			
 else
-	printf "\nPlease, restart sshd later with\n\$ sudo service ssh restart\n"
+	printf "Please, restart sshd later with:\n\$ sudo service ssh restart\n"
 fi
 
 echo "Installation comlete."
