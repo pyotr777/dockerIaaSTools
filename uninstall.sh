@@ -81,9 +81,8 @@ fi
 if [ -a "$ssh_conf" ]; then
 	if grep -q "$diaasgroup" "$ssh_conf"; then
 		printf "Unpatch %s\n" "$ssh_conf"
-		cp "$sshd_config_patch" "tmp_$sshd_config_patch"
-		sed -i 's/$diaasgroup/diaasgroup/' "tmp_$sshd_config_patch"
-		sed -i 's/$forcecommand/forcecommand/' "tmp_$sshd_config_patch"
+		text="$(cat $sshd_config_patch)"
+		eval "cat <<$text" > "tmp_$sshd_config_patch"
 		patch -R "$ssh_conf" < "tmp_$sshd_config_patch"
 		if [[ $? -eq 1 ]]; then
 			echo "error."

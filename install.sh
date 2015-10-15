@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.31a05"
+version="0.31a06"
 debug=1
 
 ### Configuration section
@@ -185,9 +185,8 @@ if [ -a "$ssh_conf" ]; then
 		echo "$ssh_conf already patched."
 	else
 		printf "Patch %s\n" "$ssh_conf"
-		cp "$sshd_config_patch" "tmp_$sshd_config_patch"
-		sed -i "s/\$diaasgroup/$diaasgroup/" "tmp_$sshd_config_patch"
-		sed -i "s/\$forcecommand/$forcecommand/" "tmp_$sshd_config_patch"
+		text="$(cat $sshd_config_patch)"
+		eval "cat <<$text" > "tmp_$sshd_config_patch"
 		patch "$ssh_conf" < "tmp_$sshd_config_patch"
 		if [[ $? -eq 1 ]]; then
 			echo "error."
@@ -205,7 +204,6 @@ fi
 echo "Restart sshd? [y/n]"
 read -n 1 restartssh
 if [[ $restartssh == "y" ]]; then
-	printf "\n"
 	service ssh restart			
 else
 	printf "\nPlease, restart sshd later with\n\$ sudo service ssh restart\n"

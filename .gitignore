@@ -4,3 +4,4 @@
 *.gz
 stracetest
 *_rsa
+*tmp_*
