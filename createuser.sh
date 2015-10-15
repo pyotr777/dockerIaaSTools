@@ -20,7 +20,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014-2015 RIKEN AICS. All rights reserved
 
-version="0.31a09"
+version="0.31a10"
 echo "$0 v$version"
 
 # Initialization

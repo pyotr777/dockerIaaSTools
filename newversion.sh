@@ -3,14 +3,20 @@
 # Change version numbers in all .sh file to $1
 # Original version number is obtained from install.sh
 
+basefile="install.sh"
+
+version=$(grep "version=" $basefile)
+eval "$version"
+
 if [ $# -lt 1 ]; then
 	echo "Need new version number"
+	echo "old version=$version"
 	exit 1
 fi
-
-version=$(grep "version=" install.sh)
-eval "$version"
-echo "old version=$version"
-newverison=$1
-
-find . -name "*.sh" | xargs sed -i"s#$version#$newverison#"
+newversion=$1
+echo "New version $newversion"
+if grep -q GNU <<<$(sed --version 2>/dev/null); then  
+	sed -i "s/$version/$newversion/" *.sh 
+else
+	sed -i '' "s/$version/$newversion/" *.sh 
+fi

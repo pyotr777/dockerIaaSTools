@@ -10,7 +10,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 RIKEN AICS.
 
-version="0.31a09 scp_sshfs"
+version="0.31a10 scp_sshfs"
 
 source installsh
 source $diaasconfig

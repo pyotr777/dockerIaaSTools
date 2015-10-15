@@ -11,7 +11,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (c) 2014-2015 RIKEN AICS.
 
-version="0.31a09"
+version="0.31a10"
 
 if [[ -z $1 ]]
 	then
@@ -40,7 +40,7 @@ userExists() {
 }
 
 
-if [[ "$($dockercommand ps | grep -q $container)" ]]; then
+if grep -q "$container" <<<"$($dockercommand ps)" ]]; then
 	out="$($dockercommand kill $container 2>&1)"
 	if [[ $out == *Error* ]]
 	then

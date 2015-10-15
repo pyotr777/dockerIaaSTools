@@ -5,7 +5,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.31a04"
+version="0.31a10"
 
 source ./install.sh -c
 source $diaasconfig
