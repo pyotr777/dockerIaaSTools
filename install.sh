@@ -125,7 +125,7 @@ if [[ $? -eq 1 ]]; then
 	exit 1
 fi
 # Replace filename with full path to install.sh in docker.sh
-sed -ri "s#^source\s+source installsh#source $(pwd)/install.sh -c#" "$forcecommand"
+sed -ri "s#source installsh#source $(pwd)/install.sh -c#" "$forcecommand"
 printf "$format" "Copy $forcecommand" "OK"
 
 if [ ! -f "$forcecommandlog" ]; then

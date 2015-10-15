@@ -112,7 +112,7 @@ if [ -n "$sshd_pam_edited" ]; then
 	fi
 fi
 
-echo "Restart sshd? [y/n]"
+echo -n "Restart sshd? [y/n]"
 read -n 1 restartssh
 printf "\n"
 if [[ $restartssh == "y" ]]; then
