@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.31a08"
+version="0.31a09"
 debug=1
 
 ### Configuration section
@@ -206,7 +206,7 @@ else
 	exit 1
 fi
 
-echo "Restart sshd? [y/n]"
+echo -n "Restart sshd? [y/n]"
 read -n 1 restartssh
 printf "\n"
 if [[ $restartssh == "y" ]]; then

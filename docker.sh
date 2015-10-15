@@ -11,21 +11,21 @@
 # remove - remove continaer
 
 
-version="3.2.41 scp_sshfs"
+version="0.31a09 scp_sshfs"
 
-log_file="/docker.log"
+source ./install.sh -c
+source $diaasconfig
+
+log_file=$forecommandlog
 
 # mount table file lists folders, that should be mount on container startup (docker run command)
 # file format:
 # username@mountcommand1;mountcommand2;...
 # mountcommand format: 
 # [host-dir]:[container-dir]:[rw|ro]
-mount_file="/var/mounttable.txt"
 
 # Verbose logs for debugging
 debuglog=1
-dockercommand="docker -H localhost:4243"
-user_table_file="/var/usertable.txt"
 
 # 1 if we started container
 container_started=0
@@ -90,13 +90,13 @@ getFreePort() {
 }
 
 
-# Read from mount_file, search for username@... line,
+# Read from mountfile, search for username@... line,
 # return part of Docker run command for mounting volumes
 # like this: "-v hostdir:contdir -v hostdir:contdir:ro"
 
 getMounts() {
     mount_command=""
-    mounts=$(grep $1 $mount_file | awk -F"@" '{ print $2 }')  
+    mounts=$(grep $1 $mountfile | awk -F"@" '{ print $2 }')  
     if [ -z "$mounts" ]
     then 
         echo ""
@@ -115,13 +115,13 @@ if [ ! -w $log_file ];
 then
     touch $log_file
 fi
-if [ ! -f $user_table_file ];
+if [ ! -f $usersfile ];
 then
-    echo "Cannot find file $user_table_file" >> $log_file
+    echo "Cannot find file $usersfile" >> $log_file
     exit 1;
 fi
 
-echo "docker.sh $version" >> $log_file
+echo "$0 $version" >> $log_file
 echo "----- start -----" >> $log_file
 date >> $log_file
 echo "ORC: $SSH_ORIGINAL_COMMAND" >> $log_file
@@ -131,8 +131,8 @@ then
     echo "CON: $SSH_CONNECTION" >> $log_file
 fi
 
-# Get user container name from table in file user_table_file
-cont_name=$(grep -E "^$USER " $user_table_file| awk '{ print $2 }')
+# Get user container name from table in file usersfile
+cont_name=$(grep -E "^$USER " $usersfile| awk '{ print $2 }')
 if [ -z "$cont_name" ] 
 then
     echo "No user $USER registered here." >&2
