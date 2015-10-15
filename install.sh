@@ -60,11 +60,12 @@ fi
 
 echo -n "Start installation of Docker IaaS tools? [y/n]"
 read -n 1 start
+printf "\n"
 if [[ $start != "y" ]]; then
-	printf "\nBye!\n"
+	printf "Bye!\n"
 	exit 0
 fi
-printf "\n"
+
 
 
 # Define output format
@@ -97,7 +98,6 @@ else
 	printf "Somethings wrong :%s\n" "$dockerimagesline"
 	exit 1
 fi
-printf "\n"
 # Check section end
 
 # Group diaasgroup - create if not exists
@@ -125,7 +125,6 @@ fi
 printf "$format" "Copy $forcecommand" "OK"
 
 if [ ! -a "$forcecommandlog" ]; then
-	printf "Create %s\t\t" "$forcecommandlog"
 	touch "$forcecommandlog"
 	if [[ $? -eq 1 ]]; then
 		echo "Error: Could not create $forcecommandlog." 1>&2
@@ -171,7 +170,8 @@ fi
 if [ -a "$sshd_pam" ]; then
 	sed -ri 's/^session\s+required\s+pam_loginuid.so$/session optional pam_loginuid.so/' "$sshd_pam"
 	if [[ $? -eq 0 ]]; then
-		printf "%s\t\t\t\tedited.\n(session required pam_loginuid.so -> session optional pam_loginuid.so)\n" "$sshd_pam"
+		printf "$format"  "$sshd_pam" "edited"
+		echo "(session required pam_loginuid.so -> session optional pam_loginuid.so)"
 	fi
 fi
 
@@ -192,7 +192,7 @@ if [ -a "$ssh_conf" ]; then
 		read -n 1 foo
 		printf "\n"
 	else
-		text="$(cat $sshd_config_patch)"
+		text="$(echo EOF;cat $sshd_config_patch;echo EOF)"
 		eval "cat <<$text" > "tmp_$sshd_config_patch"
 		patch "$ssh_conf" < "tmp_$sshd_config_patch"
 		if [[ $? -eq 1 ]]; then
