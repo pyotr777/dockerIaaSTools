@@ -159,14 +159,14 @@ chown -R $username:$username /home/$username/
 
 # Check TCP connection to Docker remote API
 # Required for automatic login to container
-#dockercommand="docker -H localhost:4243"
+# default dockercommand = "docker -H localhost:4243"
 test=$($dockercommand ps)
 if [ -z "$test" ]
 then
     echo "*******************************************************"
     echo "ERROR: Cannot connect to Docker API with $dockercommand"
     echo "To access Docker API over TCP port start socat proxy the following commands using the correct port number (default is 4243):"
-    echo "socat TCP-LISTEN:4243,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock &"
+    echo "socat TCP-LISTEN:$dockerport,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock &"
     echo "socid=\$!"
     echo "Use \$socid later for killig socat proxy."
     echo "*******************************************************"

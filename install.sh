@@ -18,13 +18,18 @@ forcecommandlog="/var/log/diaas.log"
 tablesfolder="/var/lib/diaas"
 mountfile="$tablesfolder/mounttable.txt"
 usersfile="$tablesfolder/userstable.txt"
-dockercommand="docker -H localhost:4243"
-#dockercommand="docker"
+dockerhost="localhost"
+dockerport="4243"
+dockercommand="docker -H $dockerhost:$dockerport"
 diaasgroup="diaasgroup"
 ssh_conf="/etc/ssh/sshd_config"
 sshd_pam="/etc/pam.d/sshd"
 sshd_config_patch="sshd_config.patch"
 ### Configuration section end
+
+# Array for saving variables to configuration file
+config_vars=(forcecommand forcecommandlog tablesfolder mountfile usersfile \
+	dockerhost dockerport dockercommand diaasgroup ssh_conf sshd_pam sshd_config_patch)
 
 read -rd '' usage << EOF
 Installation script for Docker IaaS tools v$version
@@ -82,33 +87,23 @@ if [[ $? -gt 1 ]]; then
 	apt-get install jq
 fi
 
-./socat-start.sh
+./socat-start.sh $dockerport
 if [ ! -f socat.pid ]; then
 	printf "$format"  "socat" "failed"
 	exit 1
 fi
 socatpid=$(cat socat.pid)
+# Delete file with socat PID
 rm socat.pid
 echo $socatpid
 printf "$format"  "socat" "started with PID $socatpid"
 
 # Write variables to config file diaas_installed.conf
-read -rd '' conf <<- CONF
-forcecommand="$forcecommand"
-forcecommandlog="$forcecommandlog"
-tablesfolder="$tablesfolder"
-mountfile="$mountfile"
-usersfile="$usersfile"
-dockercommand="$dockercommand"
-diaasgroup="$diaasgroup"
-ssh_conf="$ssh_conf"
-sshd_pam="$sshd_pam"
-sshd_config_patch="$sshd_config_patch"
-format="$format"
-socatpid="$socatpid"
-CONF
-su $SUDO_USER -c "touch $diaasconfig"
-printf "%s" "$conf" > $diaasconfig
+touch $diaasconfig
+printf "" > $diaasconfig
+for var in "${config_vars[@]}"; do
+	echo "$var=\"$(eval echo $var)\"" >> $diaasconfig
+done
 echo "Configuration saved to file $diaasconfig"
 
 
