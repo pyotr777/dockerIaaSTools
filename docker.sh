@@ -303,13 +303,14 @@ if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]]
     fi
     "${commands[@]}"
     
+    # Commands for test:
     # c_path="$(HOME)/control_local"
     # echo "Creating controlpath at $c_path" >> $forcecommandlog
-    # ssh -p "$PORT" -A -f -N -M -S "$c_path" -o StrictHostKeyChecking=no root@localhost >> $forcecommandlog &  
+    # ssh -p "$PORT" -A -M -S "$c_path" -o StrictHostKeyChecking=no -o ControlPersist=yes root@localhost hostname >> $forcecommandlog
     # echo "SSH master connected $!" >> $forcecommandlog
-    # ssh -S $c_path -p $PORT -O check root@localhost >> $forcecommandlog
-    # scp -t -v -o ControlPath=$c_path -p $PORT root@localhost:/ >> $forcecommandlog
-    # ssh -S $CONTROLPATH -p $PORT -O exit root@localhost >> $forcecommandlog
+    # ssh -O check -S $c_path -p $PORT root@localhost >> $forcecommandlog
+    # scp -o ControlPath=$c_path -t . root@localhost:/ >> $forcecommandlog
+    # ssh -O exit -S $c_path -p $PORT root@localhost >> $forcecommandlog
 else
     commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
     if [ $debuglog -eq 1 ]
