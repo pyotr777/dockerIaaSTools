@@ -52,8 +52,8 @@ if [ $users -ge 1 ]; then
 			deleteUser ${userarray[0]}
 		done
 	fi
+	printf "$format" "Users deleted" "OK"
 fi
-printf "$format" "Users deleted" "OK"
 
 # Group 
 if [ -n "$(cat /etc/group | grep "$diaasgroup:")" ]; then

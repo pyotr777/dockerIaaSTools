@@ -27,9 +27,13 @@ sshd_pam="/etc/pam.d/sshd"
 sshd_config_patch="sshd_config.patch"
 ### Configuration section end
 
+# Define output format
+format="%-50s %-20s\n"
+
 # Array for saving variables to configuration file
 config_vars=(forcecommand forcecommandlog tablesfolder mountfile usersfile \
-	dockerhost dockerport dockercommand diaasgroup ssh_conf sshd_pam sshd_config_patch)
+	dockerhost dockerport dockercommand diaasgroup ssh_conf \
+	sshd_pam sshd_config_patch format)
 
 read -rd '' usage << EOF
 Installation script for Docker IaaS tools v$version
@@ -71,9 +75,6 @@ if [[ $start != "y" ]]; then
 	exit 0
 fi
 
-# Define output format
-format="%-50s %-20s\n"
-
 # Check jq install
 jq &>/dev/null
 if [[ $? -gt 1 ]]; then
@@ -87,6 +88,14 @@ if [[ $? -gt 1 ]]; then
 	apt-get install jq
 fi
 
+# Check that port is not used
+read pname pid junk <<< "$(sudo lsof -i TCP:$dockerport | grep -v COMMAND)"
+if [[ -n "$pid" ]]; then
+	echo "Port $dockerport is used by $pname with PID $pid"
+	exit 1
+fi
+
+# Start socat proxy
 ./socat-start.sh $dockerport
 if [ ! -f socat.pid ]; then
 	printf "$format"  "socat" "failed"
@@ -105,6 +114,7 @@ for var in "${config_vars[@]}"; do
 done
 if [[ -n "$socatpid" ]]; then
 	echo "socatpid=\"$socatpid\"" >> $diaasconfig
+fi
 echo "Configuration saved to file $diaasconfig"
 
 

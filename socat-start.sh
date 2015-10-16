@@ -24,10 +24,10 @@ if [ -n "$1" ]; then
 	port=$1
 fi
 
-echo "Start TCP proxy to docker socat runs on port $port"
 socat TCP-LISTEN:$port,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock &
 PID=$!
-echo "Socat runs with PID $PID"
+status=$?
+echo "Socat runs with PID $PID with status $status"
 # Save socat PID in a file
 echo $PID > socat.pid
 # This file will be deleted right after parent process reads it
