@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.32a01"
+version="0.32a02"
 debug=1
 
 ### Configuration section
@@ -31,8 +31,9 @@ Installation script for Docker IaaS tools v$version
 
 Usage: \$ sudo $0 [-c]
 Options: 
-	-c print configuration variables and exit (can be used with source command). 
+	-c print path to the file with configuration variables and exit. Can be used with source command. 
 	This option does not require root privileges.
+
 Docker IaaS tools requirements: bash, Docker, socat, jq.
 Required OS: Ubuntu, Debian.
 EOF
@@ -67,6 +68,19 @@ fi
 
 # Define output format
 format="%-50s %-20s\n"
+
+# Check jq install
+jq &>/dev/null
+if [[ $? -gt 1 ]]; then
+	echo -n "jq is required for Docker IaaS Tools. Install jq? [y/n]"
+	read -n 1 install
+	printf "\n"
+	if [[ $install != "y" ]]; then
+		printf "Bye!\n"
+		exit 1
+	fi
+	apt-get install jq
+fi
 
 ./socat-start.sh
 if [ ! -f socat.pid ]; then

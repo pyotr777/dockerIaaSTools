@@ -4,7 +4,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.32a01"
+version="0.32a02"
 
 # Check that socat is installed
 socat &>/dev/null
