@@ -168,15 +168,16 @@ chown -R $username:$username /home/$username/
 test=$($dockercommand ps)
 if [ -z "$test" ]
 then
-    echo "*******************************************************"
     echo "ERROR: Cannot connect to Docker API with $dockercommand"
-    echo "To access Docker API over TCP port start socat proxy with"
-    echo "the following commands:"
-    echo "socat TCP-LISTEN:$dockerport,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock &"
-    echo "socid=\$!"
-    echo "Use \$socid later for killig socat proxy."
-    echo "*******************************************************"
+    echo "Restarting socat proxy"
+    kill $socatpid
+    ./socat-start.sh $dockerport
+	if [ ! -f socat.pid ]; then
+		printf "$format"  "socat" "failed"
+		exit 1
+	fi
+	socatpid=$(cat socat.pid)
+	# Delete file with socat PID
+	rm socat.pid
+	printf "$format"  "socat" "started with PID $socatpid"
 fi
-
-# docker run -d -name $username -P localhost/$username
-

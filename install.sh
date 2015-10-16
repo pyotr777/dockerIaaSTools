@@ -95,7 +95,6 @@ fi
 socatpid=$(cat socat.pid)
 # Delete file with socat PID
 rm socat.pid
-echo $socatpid
 printf "$format"  "socat" "started with PID $socatpid"
 
 # Write variables to config file diaas_installed.conf
@@ -104,6 +103,8 @@ printf "" > $diaasconfig
 for var in "${config_vars[@]}"; do
 	echo "$var=\"$(eval echo \$$var)\"" >> $diaasconfig
 done
+if [[ -n "$socatpid" ]]; then
+	echo "socatpid=\"$socatpid\"" >> $diaasconfig
 echo "Configuration saved to file $diaasconfig"
 
 
