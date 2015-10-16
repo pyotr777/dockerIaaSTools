@@ -165,7 +165,8 @@ if [ -z "$test" ]
 then
     echo "*******************************************************"
     echo "ERROR: Cannot connect to Docker API with $dockercommand"
-    echo "To access Docker API over TCP port start socat proxy the following commands using the correct port number (default is 4243):"
+    echo "To access Docker API over TCP port start socat proxy with"
+    echo "the following commands:"
     echo "socat TCP-LISTEN:$dockerport,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock &"
     echo "socid=\$!"
     echo "Use \$socid later for killig socat proxy."

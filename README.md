@@ -36,7 +36,7 @@ Both scripts provide detailed information on what is being done.
 
 ## Creating new users
 
-A new user is created with the following command:
+A new user is created with the following command executed in the Docker IaaS Tools directory on the server machine:
 ```
 $ sudo ./createuser.sh <username> <docker image name> <path to public ssh key> 
 ```
