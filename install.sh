@@ -102,7 +102,7 @@ printf "$format"  "socat" "started with PID $socatpid"
 touch $diaasconfig
 printf "" > $diaasconfig
 for var in "${config_vars[@]}"; do
-	echo "$var=\"$(eval echo $var)\"" >> $diaasconfig
+	echo "$var=\"$(eval echo \$$var)\"" >> $diaasconfig
 done
 echo "Configuration saved to file $diaasconfig"
 
@@ -141,7 +141,7 @@ if [[ $? -eq 1 ]]; then
 	echo "Error: Could not copy file $(pwd)/docker.sh to $forcecommand" 1>&2
 	exit 1
 fi
-# Replace filename with full path to install.sh in docker.sh
+# Replace filename with full path to config file in docker.sh
 sed -ri "s#source diaasconfig#source $(pwd)/$diaasconfig#" "$forcecommand"
 printf "$format" "Copy $forcecommand" "OK"
 
@@ -205,7 +205,7 @@ if [ -f "$sshd_pam" ]; then
 	if [[ $? -eq 0 ]]; then
 		printf "$format"  "$sshd_pam" "edited"
 		echo "(session required pam_loginuid.so -> session optional pam_loginuid.so)"
-		printf "\n%s" "sshd_pam_edited=edited" >> $diaasconfig
+		printf "%s" "sshd_pam_edited=\"edited\"" >> $diaasconfig
 	fi
 fi
 
