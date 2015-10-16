@@ -38,8 +38,9 @@ Both scripts provide detailed information on what is being done.
 
 A new user is created with the following command executed in the Docker IaaS Tools directory on the server machine:
 ```
-$ sudo ./createuser.sh <username> <docker image name> <path to public ssh key> 
+$ sudo ./createuser.sh <username> <docker image name> <public ssh key> 
 ```
+*Note, that public key must be in the same directory with createuser.sh or in a subdirectory.*   
 This will create a new user on the serve machine. When the new user will access the server with ssh he/she will be seamlessly redirected to a private Docker container created from the provided image. User must have his private ssh key saved in ssh agent with:
 ```
 ssh-add <path to private ssh key>
