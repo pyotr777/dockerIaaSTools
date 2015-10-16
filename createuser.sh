@@ -50,6 +50,11 @@ image=$2
 public_key_file=$3
 
 source ./install.sh -c
+if [ ! -f "$diaasconfig" ]; then
+	echo "Configuration file not found. DIaaS may not have been installed."
+	exit 1
+fi
+source $diaasconfig
 
 # In-container locations
 container_connections_counter="/tmp/dockeriaas_cc"
