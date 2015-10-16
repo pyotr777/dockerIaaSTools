@@ -291,25 +291,25 @@ esac
 if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]]
 # if [ "true" ]
     then 
-    # echo "SCP detected  at $(pwd)" >> $forcecommandlog
+    echo "SCP detected  at $(pwd)" >> $forcecommandlog
     
     # This works
     # strace -s 2000 -f $SSH_ORIGINAL_COMMAND
 
     commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
-    # if [ $debuglog -eq 1 ]
-    # then
-        # echo "${commands[@]}" >> $forcecommandlog
-    # fi
+    if [ $debuglog -eq 1 ]
+    then
+        echo "${commands[@]}" >> $forcecommandlog
+    fi
     "${commands[@]}"
     
-    # c_path="/home/nic/control_local"
+    # c_path="$(HOME)/control_local"
     # echo "Creating controlpath at $c_path" >> $forcecommandlog
     # ssh -p "$PORT" -A -f -N -M -S "$c_path" -o StrictHostKeyChecking=no root@localhost >> $forcecommandlog &  
     # echo "SSH master connected $!" >> $forcecommandlog
-    # ssh -S $c_path -p $PORT -O check root@localhot >> $forcecommandlog
+    # ssh -S $c_path -p $PORT -O check root@localhost >> $forcecommandlog
     # scp -t -v -o ControlPath=$c_path -p $PORT root@localhost:/ >> $forcecommandlog
-    # ssh -S $CONTROLPATH -p $PORT -O exit root@localhot >> $forcecommandlog
+    # ssh -S $CONTROLPATH -p $PORT -O exit root@localhost >> $forcecommandlog
 else
     commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
     if [ $debuglog -eq 1 ]
