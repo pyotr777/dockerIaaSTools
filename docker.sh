@@ -10,7 +10,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 RIKEN AICS.
 
-version="0.32a02 scp_sshfs"
+version="0.33a01"
 
 source diaasconfig
 
@@ -260,32 +260,6 @@ echo "> $(date)" >> $forcecommandlog
 
 # Execute commands in container
 # -----------------------------
-
-# Set environment variables in container
-case "$container_action" in
-    start) 
-        command1='echo export SSH_PORT='"$PORT"' > /root/.getport'
-        commands=( "${sshcommand[@]}" "$command1" )
-        if [ $debuglog -eq 1 ]
-        then
-            echo "setting environment variables" >> $forcecommandlog
-            echo "${commands[@]}" >> $forcecommandlog
-        fi
-        "${commands[@]}"
-    ;;
-    run)
-    	# SSH external port number
-    	command1='echo . /root/.getport >> /root/.bashrc'
-    	command2='echo export SSH_PORT='"$PORT"' > /root/.getport'
-    	commands=( "${sshcommand[@]}" "$command1; $command2" )
-    	if [ $debuglog -eq 1 ]
-    	then
-    		echo "setting environment variables" >> $forcecommandlog
-    	    echo "${commands[@]}" >> $forcecommandlog
-    	fi
-    	"${commands[@]}"
-    ;;
-esac
 
 # SCP
 if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]]
