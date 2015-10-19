@@ -12,7 +12,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2015 RIKEN AICS. All rights reserved
 
-version="0.41"
+version="0.43"
 debug="1"
 
 usage="Usage:\nconnect.sh -u <username> -h <server address> -p <server port number> \
@@ -52,7 +52,7 @@ copyRCfileAndExecute() {
 	echo "Command file:"
 	eval "cat $cmd_file"
 	echo "....."
-	cp_command="cat $cmd_file | ssh -v $SSH_PARAMETERS \"cat - > /$cmd_file\""
+	cp_command="cat $cmd_file | ssh -T $SSH_PARAMETERS \"cat - > /$cmd_file\""
 	if [ $debug ]; then
 		echo "Copying RC file:"
 		echo $cp_command
@@ -62,7 +62,7 @@ copyRCfileAndExecute() {
 	command="ssh $SSH_PARAMETERS \"chmod +x /$cmd_file\""
 	echo "Executing chmod command: $command"
 	eval "$command" # 2>&1 | grep -i "error"
-	command="ssh $SSH_PARAMETERS '/$cmd_file'"    
+	command="ssh $SSH_PARAMETERS '/$cmd_file'"
 	echo "Executing RC command: $command"
 	eval "$command 2>&1" # | grep -i "error"
 }
@@ -94,7 +94,7 @@ while getopts "u:h:l:i:k:m:a:p:" opt; do
 		server_port="-p $(trimQuotes $OPTARG)"
 		;;
 	\?)
-		echo "Invalid option: -$OPTARG" >&2      
+		echo "Invalid option: -$OPTARG" >&2
 		;;
 	:)
 		echo "Option -$OPTARG requires an argument." >&2
@@ -136,7 +136,7 @@ if [ -n "$ssh_key" ]; then
 	keyoption="-i $ssh_key"
 fi
 
-SSH_PARAMETERS="-A $server_port $remoteuser@$server"
+SSH_PARAMETERS="-A $server_port -o StrictHostKeyChecking=no $remoteuser@$server"
 
 free_port=$(ssh $SSH_PARAMETERS freeport 2>/dev/null)
 
@@ -163,7 +163,7 @@ then  # No commands -- interactive shell login
 	export PATH="\$PATH:$add_path";
 RCOM
 	
-	# Save remote commands to a file. Execute it in container. 
+	# Save remote commands to a file. Execute it in container.
 	cmd_file="rcom.sh"
 	if [ $debug ]; then
 		echo "#!/bin/bash -x" > $cmd_file
@@ -171,9 +171,9 @@ RCOM
 		echo "#!/bin/bash" > $cmd_file
 	fi
 	echo "version=$version" >> $cmd_file
-	printf "%s\n" "$remote_commands" >> $cmd_file		
+	printf "%s\n" "$remote_commands" >> $cmd_file
 	# Copy command file into container using container SSH port number as seen from server-side.
-	copyRCfileAndExecute "$cmd_file" 
+	copyRCfileAndExecute "$cmd_file"
 	command="ssh -Y -o StrictHostKeyChecking=no $SSH_PARAMETERS"
 	if [ $debug ]; then
 		echo "Executing interactive login:"
@@ -186,7 +186,7 @@ else # Execute remote commands. No interactive shell login.
 	setup_commands="$setup_commands\n$remote_commands"
 	echo -e $setup_commands
 
-	# Save remote commands to a file. Execute it in container. 
+	# Save remote commands to a file. Execute it in container.
 	cmd_file="rcom.sh"
 	echo "#!/bin/bash" > $cmd_file
 	echo "version=$version" >> $cmd_file
