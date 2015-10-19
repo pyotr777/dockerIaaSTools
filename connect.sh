@@ -150,10 +150,9 @@ then  # No commands -- interactive shell login
 	export PATH="\$PATH:$add_path";
 RCOM
 	#remote_commands="mkdir -p \"$path\"\nsshfs -o StrictHostKeyChecking=no,UserKnownHostsFile=/dev/null,nonempty -p $free_port $local_user@$hostIP:$path $path\ncd \"$path\"\necho \"ver \$version\";pwd;ls -l;export PATH=\$PATH:$add_path;"
-	printf "%s" "$remote_commands"
-	exit 1
-
-
+	if [ $debug ]; then
+		printf "%s" "$remote_commands"
+	fi
 
 	# Save remote commands to a file. Execute it in container. 
 	cmd_file="rcom.sh"
