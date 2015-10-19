@@ -12,7 +12,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2015 RIKEN AICS. All rights reserved
 
-version="0.29"
+version="0.41"
 debug="1"
 
 usage="Usage:\nconnect.sh -u <username> -h <server address> -p <server port number> \
@@ -38,6 +38,33 @@ trimQuotes() {
 	v=$1
 	val=$(echo $v | sed 's/^\"//' | sed 's/\"$//')
 	echo "$val"
+}
+
+# Copy file with bash script into container
+# and execute it in container.
+# Paramter: script file name.
+# Uses variables: $SSH_PARAMETERS and $debug.
+copyRCfileAndExecute() {
+	echo "Called copyRCfileAndExecute with parameter: $1"
+	echo "ssh_parameters=$SSH_PARAMETERS"
+	echo "debug=$debug"	
+	cmd_file=$1
+	echo "Command file:"
+	eval "cat $cmd_file"
+	echo "....."
+	cp_command="cat $cmd_file | ssh -v $SSH_PARAMETERS \"cat - > /$cmd_file\""
+	if [ $debug ]; then
+		echo "Copying RC file:"
+		echo $cp_command
+	fi
+	eval "$cp_command"
+	ssh $SSH_PARAMETERS "ls -l /"
+	command="ssh $SSH_PARAMETERS \"chmod +x /$cmd_file\""
+	echo "Executing chmod command: $command"
+	eval "$command" # 2>&1 | grep -i "error"
+	command="ssh $SSH_PARAMETERS '/$cmd_file'"    
+	echo "Executing RC command: $command"
+	eval "$command 2>&1" # | grep -i "error"
 }
 
 while getopts "u:h:l:i:k:m:a:p:" opt; do
@@ -111,25 +138,11 @@ fi
 
 SSH_PARAMETERS="-A $server_port $remoteuser@$server"
 
-container_port=$(ssh $SSH_PARAMETERS port 2>/dev/null)
-if [ $container_port="null" ]; then
-	if [ $debug ]; then
-		echo "Starting container in daemon mode ($SSH_PARAMETERS)"
-	fi
-	ssh $SSH_PARAMETERS "daemon" 2>/dev/null
-	container_started="true"
-	container_port=$(ssh $SSH_PARAMETERS port 2>/dev/null)
-	if [ -z $container_port ]; then
-		echo "Could not reach container. Check the address, user name, connection, ..."
-		exit 1
-	fi
-fi
-
 free_port=$(ssh $SSH_PARAMETERS freeport 2>/dev/null)
 
-echo "SSH server port: $free_port, container port:$container_port"
+echo "SSH server port: $free_port"
 
-command="ssh $SSH_PARAMETERS -R $free_port:localhost:22 -N"
+command="ssh $SSH_PARAMETERS -R 0.0.0.0:$free_port:localhost:22 -N"
 if [ $debug ]; then 
 	echo $command
 fi
@@ -142,18 +155,14 @@ if [ -z "$remote_commands" ]
 then  # No commands -- interactive shell login
 	read -rd ''  remote_commands <<- RCOM
 	mkdir -p "$path"
-	sshfs -o StrictHostKeyChecking=no,UserKnownHostsFile=/dev/null,nonempty -p $free_port $local_user@$hostIP:$path
+	sshfs -o StrictHostKeyChecking=no,UserKnownHostsFile=/dev/null,nonempty -p $free_port $local_user@$hostIP:$path $path
 	cd "$path"
 	echo "v$version";
 	pwd;
 	ls -l;
 	export PATH="\$PATH:$add_path";
 RCOM
-	#remote_commands="mkdir -p \"$path\"\nsshfs -o StrictHostKeyChecking=no,UserKnownHostsFile=/dev/null,nonempty -p $free_port $local_user@$hostIP:$path $path\ncd \"$path\"\necho \"ver \$version\";pwd;ls -l;export PATH=\$PATH:$add_path;"
-	if [ $debug ]; then
-		printf "%s" "$remote_commands"
-	fi
-
+	
 	# Save remote commands to a file. Execute it in container. 
 	cmd_file="rcom.sh"
 	if [ $debug ]; then
@@ -162,22 +171,12 @@ RCOM
 		echo "#!/bin/bash" > $cmd_file
 	fi
 	echo "version=$version" >> $cmd_file
-	echo -e $remote_commands >> $cmd_file
-	chmod +x $cmd_file
-	if [ $debug ]
-		then
-		echo "Command file:"
-		cat $cmd_file
-		echo "---"
-	fi
+	printf "%s\n" "$remote_commands" >> $cmd_file		
 	# Copy command file into container using container SSH port number as seen from server-side.
-	cp_command="scp $keyoption -P $container_port $cmd_file root@$server:/"
-	$cp_command 
-	command="ssh -o StrictHostKeyChecking=no $SSH_PARAMETERS '/$cmd_file'"    
-	$command 2>&1 | grep -i "error"
-	#command="ssh -A -Y -o StrictHostKeyChecking=no $remoteuser@$server"
-	command="ssh -Y -o StrictHostKeyChecking=no $keyoption -p $container_port root@$server"
+	copyRCfileAndExecute "$cmd_file" 
+	command="ssh -Y -o StrictHostKeyChecking=no $SSH_PARAMETERS"
 	if [ $debug ]; then
+		echo "Executing interactive login:"
 		echo $command
 	fi
 	$command 
@@ -190,25 +189,16 @@ else # Execute remote commands. No interactive shell login.
 	# Save remote commands to a file. Execute it in container. 
 	cmd_file="rcom.sh"
 	echo "#!/bin/bash" > $cmd_file
-	echo "version=$version" >> $cmd_file    
-	echo -e $setup_commands >> $cmd_file    
-	chmod +x $cmd_file
+	echo "version=$version" >> $cmd_file
+	echo -e $setup_commands >> $cmd_file
+	
 	if [ $debug ]; then
 		echo "Command file:"
 		cat $cmd_file
 		echo "---"
 	fi
 	# Copy command file into container using container SSH port number as seen from server-side.
-	cp_command="scp $keyoption -P $container_port $cmd_file root@$server:/"   
-	if [ $debug ]; then
-		echo $cp_command
-	fi
-	$cp_command 
-	command="ssh $SSH_PARAMETERS '/$cmd_file'"
-	if [ $debug ]; then
-		echo $command
-	fi
-	$command 
+	copyRCfileAndExecute "$cmd_file"
 fi
 
 
