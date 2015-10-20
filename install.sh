@@ -3,11 +3,45 @@
 # Install Docker IaaS tools.
 # Need to be run with root privileges.
 #
+# Requires:
+# 	docker
+#	sshd
+#	apt-get
+# 	groupadd
+#	socat	
+#	jq
+#	sed
+#
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.32a02"
+version="0.32a03"
 debug=1
+
+
+# Set "$option yes" in $ssh_conf file.
+# Uses sed.
+# Works on OSX and Ubuntu. OSX sed is different: -E instead of -r for extended regexp, 
+# no regexp enhanced features like "\s", need '' after -i. 
+# Parameter: option name (AllowAgentForwarding, GatewayPorts, ...)
+#
+# Use global variables:
+# $ssh_conf
+# $format
+permitOption() {
+	option=$1
+	if grep -qE "$option\s+(no)*" "$ssh_conf"; then
+		ERROR=$( { sed -ri "s/\s*$option\s+(no)*\s*/$option yes/" "$ssh_conf" > /dev/null; } 2>&1 )
+		if [ -n "$ERROR" ]; then
+			# OSX version
+			sed -E -i '' "s/[[:space:]]*$option[[:space:]]+(no)*[[:space:]]*/$option yes/" "$ssh_conf"
+		fi		
+	else 
+		printf "\n%s\n" "$option yes" >> "$ssh_conf"
+	fi
+	printf "$format" "$ssh_conf" "$option permitted"
+}
+
 
 ### Configuration section
 diaasconfig="diaas_installed.conf"
@@ -23,8 +57,8 @@ dockerport="4243"
 dockercommand="docker -H $dockerhost:$dockerport"
 diaasgroup="diaasgroup"
 ssh_conf="/etc/ssh/sshd_config"
+ssh_backup="${ssh_conf}.diias_back"
 sshd_pam="/etc/pam.d/sshd"
-sshd_config_patch="sshd_config.patch"
 ### Configuration section end
 
 # Define output format
@@ -33,7 +67,7 @@ format="%-50s %-20s\n"
 # Array for saving variables to configuration file
 config_vars=(forcecommand forcecommandlog tablesfolder mountfile usersfile \
 	dockerhost dockerport dockercommand diaasgroup ssh_conf \
-	sshd_pam sshd_config_patch format)
+	ssh_backup sshd_pam format)
 
 read -rd '' usage << EOF
 Installation script for Docker IaaS tools v$version
@@ -94,6 +128,7 @@ if [[ -n "$pid" ]]; then
 	echo "Port $dockerport is used by $pname with PID $pid"
 	exit 1
 fi
+
 
 # Start socat proxy
 ./socat-start.sh $dockerport
@@ -214,37 +249,43 @@ fi
 if [ -f "$sshd_pam" ]; then
 	sed -ri 's/^session\s+required\s+pam_loginuid.so$/session    optional     pam_loginuid.so/' "$sshd_pam"
 	if [[ $? -eq 0 ]]; then
-		printf "$format"  "$sshd_pam" "edited"
-		echo "(session required pam_loginuid.so -> session optional pam_loginuid.so)"
+		printf "$format"  "$sshd_pam" "edited: session required pam_loginuid.so -> session optional pam_loginuid.so"
 		printf "%s" "sshd_pam_edited=\"edited\"" >> $diaasconfig
 	fi
 fi
 
 # Patch /etc/ssh/sshd_conf
 if [ -f "$ssh_conf" ]; then
-	if grep -q "$diaasgroup" "$ssh_conf"; then
+	# Save original version
+	cp "$ssh_conf" "$ssh_backup"
+	# Permit options
+	permitOption "AllowAgentForwarding"
+	permitOption "GatewayPorts"
+	# Add ForceCommand for group $diaasgroup
+	if grep -qEi "match\s+group\+$diaasgroup" "$ssh_conf"; then
 		# do nothing
 		printf "$format" "$ssh_conf" "already patched"
 	elif grep -qi "forcecommand" "$ssh_conf"; then
-		printf "$format" "$ssh_conf" "already has ForceCommand.\nCheck that it has the following:\n"
+		# /etc/ssh/sshd_conf has differnet ForceCommand
+		# Need to edit manually
+		printf "$format" "$ssh_conf" "already has ForceCommand. Need manual editing.\nCheck that it has the following:\n"
 		echo "AllowAgentForwarding yes"
+		echo "GatewayPorts yes"
 		echo "Match Group $diaasgroup"
 		echo "	ForceCommand $forcecommand"
 		echo "----------"
 		echo "Fragment of your $ssh_conf file:"
-		grep -C 4 "$diaasgroup" "$ssh_conf"
+		grep -C 4 "$forcecommand" "$ssh_conf"
 		echo -n "Please confirm [press any key]"
 		read -n 1 foo
 		printf "\n"
 	else
-		text="$(echo EOF;cat $sshd_config_patch;echo EOF)"
-		eval "cat <<$text" > "tmp_$sshd_config_patch"
-		patch "$ssh_conf" < "tmp_$sshd_config_patch"
-		if [[ $? -eq 1 ]]; then
-			echo "Error: Could not patch $ssh_conf." 1>&2
-			exit 1
-		fi
-		printf "$format" "Patch $ssh_conf" "OK"
+		printf "\n%s\n\t%s\n" "Match Group $diaasgroup" "ForceCommand $forcecommand" >> "$ssh_conf"
+		printf "$format" "$ssh_conf" "ForceCommand added"
+	fi
+	if grep -q "AllowAgentForwarding\s+no" "$ssh_conf"; then
+		sed -ri 's/^\s*AllowAgentForwarding\.*$/AllowAgentForwarding yes/' "$ssh_conf"
+		printf "$format" "$ssh_conf" "AllowAgentForwarding permitted"
 	fi
 else
 	echo "Error: SSH configuration file $ssh_conf not found." 1>&2

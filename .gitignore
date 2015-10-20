@@ -1,4 +1,6 @@
 ._*
+.*
+!.gitignore
 .DS*
 *.pub
 *.gz

@@ -5,9 +5,13 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.32a02"
+version="0.32a03"
 
 source ./install.sh -c
+if [ ! -f "$diaasconfig" ]; then
+	echo "No Docker IaaS Tools installed in this directory."
+	exit 0
+fi
 source $diaasconfig
 
 users=$(cat $usersfile) 2>/dev/null

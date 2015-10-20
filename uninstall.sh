@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.32a02"
+version="0.32a03"
 debug=1
 
 if [[ $(id -u) != "0" ]]; then
@@ -73,30 +73,26 @@ deleteFile "$forcecommand"
 deleteFile "$forcecommandlog"
 deleteFile "$tablesfolder" 
 
-# Edit SSH config file
-if [ -f "$ssh_conf" ]; then
-	if grep -q "$diaasgroup" "$ssh_conf"; then
-		if [ -f "tmp_$sshd_config_patch" ]; then
-			patch -R "$ssh_conf" < "tmp_$sshd_config_patch"
-			if [[ $? -eq 1 ]]; then
-				echo "Error: Could not patch $ssh_conf." 1>&2
-				exit 1
-			fi
-			rm "tmp_$sshd_config_patch"
-			printf "$format" "$ssh_conf" "restored"
-		fi
+# Restore SSH config file
+if [ -f "$ssh_backup" ]; then
+	echo -n "Restore backed up version of $ssh_conf? [y/n]"
+	read -n 1 restoressh
+	printf "\n"
+	if [[ $restoressh != "y" ]]; then
+		printf "$format" "$ssh_conf" "Leave untached"
+	else 
+		mv "$ssh_backup" "$ssh_conf"
+		printf "$format" "$ssh_conf" "Restored original version"
 	fi
 else
 	echo "Error: SSH configuration file $ssh_conf not found." 1>&2
-	exit 1
 fi
 
 # Edit /etc/pam.d/sshd
 if [ -n "$sshd_pam_edited" ]; then
 	sed -ri 's/^session\s+optional\s+pam_loginuid.so$/session    required      pam_loginuid.so/' "$sshd_pam"
 	if [[ $? -eq 0 ]]; then
-		printf "$format"  "$sshd_pam" "restored"
-		echo "(session optional pam_loginuid.so -> session required pam_loginuid.so)"
+		printf "$format"  "$sshd_pam" "restored: session optional pam_loginuid.so -> session required pam_loginuid.so"
 	fi
 fi
 
