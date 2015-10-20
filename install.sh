@@ -60,6 +60,7 @@ ssh_conf="/etc/ssh/sshd_config"
 ssh_backup="${ssh_conf}.diias_back"
 sshd_pam="/etc/pam.d/sshd"
 install_path="$(pwd)"
+config_file="/etc/diias/config"
 ### Configuration section end
 
 # Define output format
@@ -68,7 +69,7 @@ format="%-50s %-20s\n"
 # Array for saving variables to configuration file
 config_vars=(forcecommand forcecommandlog tablesfolder mountfile usersfile \
 	dockerhost dockerport dockercommand diaasgroup ssh_conf \
-	ssh_backup sshd_pam format install_path)
+	ssh_backup sshd_pam format install_path config_file)
 
 read -rd '' usage << EOF
 Installation script for Docker IaaS tools v$version
@@ -143,8 +144,6 @@ if [[ -n "$socatpid" ]]; then
 fi
 # Delete file with socat PID
 rm socat.pid
-printf "$format"  "socat" "started with PID $socatpid"
-
 
 dockerimagesline=$($dockercommand images 2>/dev/null | grep IMAGE | wc -l)
 if [[ $dockerimagesline -eq 0 ]]; then

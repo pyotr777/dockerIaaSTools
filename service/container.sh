@@ -5,22 +5,17 @@
 # Stop container when connection counter is 0.
 #
 # Created by Peter Bryzgalov
-# Copyright (c) 2013-2014 Riken AICS. All rights reserved.
+# Copyright (c) 2013-2015 Riken AICS. All rights reserved.
 
-version="3.1.6"
+version="0.34a01"
 
 # Output to separate log files for every ssh connection
 separatelog=0
 # Verbose logs for debugging
 debuglog=1
 
-# Counter files
-counter_file="/tmp/dockeriaas_cc"
-stop_file="/tmp/dockeriaas_nostop"
-# Log file name
-basename="/logs/container"
-# Working directory
-servdir="$(servdir.sh)"
+# This will be replaced by createuset.sh
+initvariables
 
 if [ $separatelog -eq 1 ]
 then	

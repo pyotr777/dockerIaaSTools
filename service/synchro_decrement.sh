@@ -3,20 +3,17 @@
 # Synchronized decrementation of a value in file
 #
 # Created by Bryzgalov Peter
-# Copyright (c) 2013-2014 Riken AICS. All rights reserved
+# Copyright (c) 2013-2015 Riken AICS. All rights reserved
 
-version="3.1.5"
+version="0.34a01"
 
-echo "synchro_decrement $version"
-servdir=$(servdir.sh)
-
-log_file="/logs/container.log" # default log file
+echo "$0 v$version"
 
 if [ $# -lt 2 ]
 then
     echo 'Need file names of counter and nostop files.' >&2
     echo "Usage:" >&2
-    echo "synchro_increment.sh counter_filename nostop_filename log_filename" >&2
+    echo "synchro_decrement.sh counter_filename nostop_filename log_filename" >&2
     exit 1
 fi
 

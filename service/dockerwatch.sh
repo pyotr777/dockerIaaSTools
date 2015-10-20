@@ -12,24 +12,17 @@
 # Command line value take precedence.
 #
 # Created by Bryzgalov Peter
-# Copyright (c) 2013-2014 Riken AICS. All rights reserved
+# Copyright (c) 2013-2015 Riken AICS. All rights reserved
 
-version="3.1.3"
+version="0.34a01"
 
-echo "dockerwatch $version"
-servdir=$(servdir.sh)
+echo "$0 v$version"
 
-# Connections counter
-counter_file="/tmp/dockeriaas_cc"
-stop_file="/tmp/dockeriaas_nostop"
-config_file="/tmp/dockeriaas_conf"
-config_reader="$servdir/readconf.py"
+# This will be replaced by createuset.sh
+initvariables
+
 timeout=5
-
-# Read timeout from config file
-val=$(python $config_reader $config_file)
-#echo "Configuration file:"
-eval "$val"
+eval $(cat $container_config)
 
 if [ $1 ]
 then
@@ -86,5 +79,3 @@ fi
 
 # If unlock file is not called, file is unlocked automatically after process get killed.
 flock -u 20
-
-

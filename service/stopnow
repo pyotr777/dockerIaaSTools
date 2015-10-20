@@ -3,13 +3,12 @@
 # Call to stop user container immediately
 #  
 # Created by Bryzgalov Peter on 2014/01/31
-# Copyright (c) 2013-2014 Riken AICS. All rights reserved
+# Copyright (c) 2013-2015 Riken AICS. All rights reserved
 
-# Counter files
-counter_file="/tmp/dockeriaas_cc"
-stop_file="/tmp/dockeriaas_nostop"
-# Log file name
-basename="/logs/container"
+version="0.34a01"
+
+# This will be replaced by createuset.sh
+initvariables
 
 echo "Stopping container"
 echo "0" > counter_file

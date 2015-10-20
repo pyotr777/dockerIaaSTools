@@ -3,9 +3,11 @@
 # Synchronized incrementation of a value in file
 #
 # Created by Bryzgalov Peter
-# Copyright (c) 2013-2014 Riken AICS. All rights reserved
+# Copyright (c) 2013-2015 Riken AICS. All rights reserved
 
-version="3.1.0"
+version="0.34a01"
+
+echo "$0 v$version"
 
 if [ $# -lt 1 ]
 then

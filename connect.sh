@@ -61,13 +61,12 @@ copyRCfileAndExecute() {
 		eval "cat $cmd_file"
 		echo "....."
 	fi
-	cp_command="tar -cvf - $cmd_file | ssh $SSH_PARAMETERS \"tar -xvf - -C /\""
+	cp_command="tar -cf - $cmd_file | ssh $SSH_PARAMETERS \"tar -xf - -C /\""
 	if [ -n "$debug" ]; then
 		echo "Copying RC file:"
 		echo $cp_command
 	fi
-	eval "$cp_command"
-	ssh $SSH_PARAMETERS "ls -l /"
+	eval "$cp_command"	
 	command="ssh $SSH_PARAMETERS \"chmod +x /$cmd_file\""
 	if [ -n "$debug" ]; then
 		echo "Executing chmod command: $command"
@@ -173,8 +172,7 @@ then  # No commands -- interactive shell login
 	sshfs -o StrictHostKeyChecking=no,UserKnownHostsFile=/dev/null,nonempty -p $free_port "$local_user@$hostIP:$path" "$path"
 	cd "$path"
 	echo "v\$version"
-	pwd
-	ls -l
+	echo "mounted $path with $(ls -l | wc -l) files."
 	export PATH="\$PATH:$add_path"
 RCOM
 	# Save remote commands to a file. Execute it in container.
@@ -201,8 +199,7 @@ else
 	sshfs -o StrictHostKeyChecking=no,UserKnownHostsFile=/dev/null,nonempty -p $free_port "$local_user@$hostIP:$path" "$path"
 	cd "$path"
 	echo "v\$version"
-	pwd
-	ls -l
+	echo "mounted $path with $(ls -l | wc -l) files."
 	export PATH="\$PATH:$add_path"
 RCOM2
 	setup_commands="$setup_commands\n$remote_commands"

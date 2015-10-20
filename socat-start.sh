@@ -80,3 +80,4 @@ if [[ -n "$savepid" ]]; then
 	echo $pid > socat.pid
 	# This file will be deleted right after parent process reads it
 fi
+printf "$format"  "socat" "started with PID $socatpid"

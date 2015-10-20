@@ -57,11 +57,16 @@ fi
 source $diaasconfig
 
 # In-container locations
-container_connections_counter="/tmp/dockeriaas_cc"
-container_config="/tmp/dockeriaas_conf"
+counter_file="/var/lib/diaas_cc"
+stop_file="/var/lib/diaas_nostop"
+container_config="/var/lib/dockeriaas_conf"
 container_home="/root"
-service_folder="service"
-service_container_folder="/usr/local/bin"
+local_service_dir="service"
+servdir="/usr/local/bin"
+basename="/var/log/diias"
+## Configuration section end
+# Array for saving variables to configuration file
+config_vars=(counter_file stop_file container_config container_home servdir basename)
 
 
 userExists() {
@@ -105,8 +110,17 @@ then
     exit 1
 fi
 
-# Create Dockerfile 
 
+# Create configuration file
+$local_config="service/config"
+touch $local_config
+printf "" > $local_config
+# Write variables to config file diaas_installed.conf
+for var in "${config_vars[@]}"; do
+	echo "$var=\"$(eval echo \$$var)\"" >> $local_config
+done
+
+# Create Dockerfile 
 read -r -d '' dockerfile_string <<EOF
 FROM $image
 EXPOSE 22
@@ -122,16 +136,21 @@ RUN sed -r -i "s/session\s+required\s+pam_loginuid\.so/session optional pam_logi
 
 RUN mkdir $container_home/.ssh
 ADD $public_key_file $container_home/.ssh/authorized_keys
-ADD $service_folder/ $service_container_folder/
 
-RUN echo 0 > $container_connections_counter
-RUN printf "timeout:2\n" > $container_config
+# Add variables Initialization into service files
+RUN sed -r -i "s/initvariables/source $container_config/g" $servdir/*
+
+# Copy service directory into container
+ADD $local_service_dir/ $servdir/
+
+RUN echo 0 > $counter_file
+RUN printf "timeout=2\n" > $container_config
 RUN mkdir /logs
 
 # Disable password login
 # RUN sed -r -i "s/^.*PasswordAuthentication[yesno ]+$/PasswordAuthentication no/" /etc/ssh/sshd_config
 
-RUN printf "\nForceCommand $service_container_folder/container.sh" >> /etc/ssh/sshd_config
+RUN printf "\nForceCommand $servdir/container.sh" >> /etc/ssh/sshd_config
 ENV DEBIAN_FRONTEND dialog
 CMD ["/usr/sbin/sshd","-D"]
 EOF
