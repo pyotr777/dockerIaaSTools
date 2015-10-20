@@ -15,7 +15,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.33"
+version="0.34a01"
 debug=1
 
 
@@ -75,7 +75,8 @@ Installation script for Docker IaaS tools v$version
 
 Usage: \$ sudo $0 [-c]
 Options: 
-	-c print path to the file with configuration variables and exit. Can be used with source command. 
+	-c print path to the file with configuration variables and exit. 
+	Can be used with \"eval \$(./install.sh -c)\" command. 
 	This option does not require root privileges.
 
 Docker IaaS tools requirements: bash, Docker, socat, jq.
@@ -90,8 +91,8 @@ if [ $# -gt 2 ]; then
 fi
 
 if [[ "$1" == "-c" ]]; then 
-	export diaasconfig="$(pwd)/$diaasconfig"
-	return
+	echo "export diaasconfig=\"$(pwd)/$diaasconfig\""
+	exit 0
 elif [[ -n "$1" ]]; then
 	printf "%s" "$usage"
 	exit 1
@@ -102,25 +103,17 @@ if [[ $(id -u) != "0" ]]; then
 	exit 1
 fi
 
-echo -n "Start installation of Docker IaaS tools? [y/n]"
-read -n 1 start
-printf "\n"
-if [[ $start != "y" ]]; then
-	printf "Bye!\n"
-	exit 0
-fi
-
 # Check jq install
 jq &>/dev/null
 if [[ $? -gt 1 ]]; then
-	echo -n "jq is required for Docker IaaS Tools. Install jq? [y/n]"
+	echo -n " jq is required for Docker IaaS Tools. Install jq? [y/n]"
 	read -n 1 install
 	printf "\n"
 	if [[ $install != "y" ]]; then
 		printf "Bye!\n"
 		exit 1
 	fi
-	apt-get install jq
+	apt-get install -y jq
 fi
 
 # Check that port is not used
@@ -136,7 +129,21 @@ printf "" > $diaasconfig
 for var in "${config_vars[@]}"; do
 	echo "$var=\"$(eval echo \$$var)\"" >> $diaasconfig
 done
-echo "Configuration saved to file $diaasconfig"
+printf "$format" "$diaasconfig" "saved"
+
+# Start socat proxy
+./socat-start.sh savepid
+if [ ! -f socat.pid ]; then
+	printf "$format"  "socat" "failed"
+	exit 1
+fi
+socatpid=$(cat socat.pid)
+if [[ -n "$socatpid" ]]; then
+	echo "socatpid=\"$socatpid\"" >> $diaasconfig
+fi
+# Delete file with socat PID
+rm socat.pid
+printf "$format"  "socat" "started with PID $socatpid"
 
 
 dockerimagesline=$($dockercommand images 2>/dev/null | grep IMAGE | wc -l)
@@ -154,7 +161,7 @@ fi
 # Group diaasgroup - create if not exists
 
 if [ -z "$(cat /etc/group | grep $diaasgroup:)" ]; then
-	echo -n "Create group $diaasgroup? [y/n]"
+	echo -n " Create group $diaasgroup? [y/n]"
 	read -n 1 creategroup
 	printf "\n"
 	if [[ $creategroup != "y" ]]; then
@@ -235,7 +242,7 @@ fi
 if [ -f "$sshd_pam" ]; then
 	sed -ri 's/^session\s+required\s+pam_loginuid.so$/session    optional     pam_loginuid.so/' "$sshd_pam"
 	if [[ $? -eq 0 ]]; then
-		printf "$format"  "$sshd_pam" "edited: session required pam_loginuid.so -> session optional pam_loginuid.so"
+		printf "$format"  "$sshd_pam" "edited"
 		printf "%s" "sshd_pam_edited=\"edited\"" >> $diaasconfig
 	fi
 fi
@@ -263,7 +270,7 @@ if [ -f "$ssh_conf" ]; then
 		echo "----------"
 		echo "Fragment of your $ssh_conf file:"
 		grep -C 4 "$forcecommand" "$ssh_conf"
-		echo -n "Please confirm [press any key]"
+		echo -n " Please confirm [press any key]"
 		read -n 1 foo
 		printf "\n"
 	else
@@ -279,7 +286,7 @@ else
 	exit 1
 fi
 
-echo -n "Restart sshd? [y/n]"
+echo -n " Restart sshd? [y/n]"
 read -n 1 restartssh
 printf "\n"
 if [[ $restartssh == "y" ]]; then
@@ -287,19 +294,5 @@ if [[ $restartssh == "y" ]]; then
 else
 	printf "Please, restart sshd later with:\n\$ sudo service ssh restart\n"
 fi
-
-# Start socat proxy
-./socat-start.sh $dockerport "savepid"
-if [ ! -f socat.pid ]; then
-	printf "$format"  "socat" "failed"
-	exit 1
-fi
-socatpid=$(cat socat.pid)
-if [[ -n "$socatpid" ]]; then
-	echo "socatpid=\"$socatpid\"" >> $diaasconfig
-fi
-# Delete file with socat PID
-rm socat.pid
-printf "$format"  "socat" "started with PID $socatpid"
 
 echo "Installation comlete."

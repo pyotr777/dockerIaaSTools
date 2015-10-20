@@ -10,7 +10,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 RIKEN AICS.
 
-version="0.33a01"
+version="0.34a01"
 
 # Will be substituted with path to cofig file during installation
 source diaasconfig
@@ -115,7 +115,7 @@ if [ ! -f $usersfile ];then
 fi
 
 # Start socat if docker is not accessible with dockercommand
-error=$( { $dockercommand ps} 2>&1 )
+error=$( { $dockercommand ps > /dev/null; } 2>&1 )
 if [[ -n "$error" ]]; then
 	${install_path}/socat-start.sh >> $forcecommandlog
 fi

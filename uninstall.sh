@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.33"
+version="0.34a01"
 debug=1
 
 if [[ $(id -u) != "0" ]]; then
@@ -14,7 +14,7 @@ if [[ $(id -u) != "0" ]]; then
 	exit 1
 fi
 
-source ./install.sh -c
+eval $(./install.sh -c)
 if [ ! -f "$diaasconfig" ]; then
 	echo "Configuration file not found. DIaaS may not have been installed."
 	exit 1
@@ -42,7 +42,7 @@ deleteUser() {
 # Delete users
 users=$(cat $usersfile | wc -l)
 if [ $users -ge 1 ]; then
-	echo -n "Delete Docker IaaS users? [y/n]"
+	echo -n " Delete Docker IaaS users? [y/n]"
 	read -n 1 rmusers
 	printf "\n"
 	if [[ $rmusers == "y" ]]; then
@@ -57,7 +57,7 @@ fi
 
 # Group 
 if [ -n "$(cat /etc/group | grep "$diaasgroup:")" ]; then
-	echo -n "Remove $diaasgroup? [y/n]"
+	echo -n " Remove $diaasgroup? [y/n]"
 	read -n 1 rmgroup
 	printf "\n"
 	if [[ $rmgroup != "y" ]]; then
@@ -75,7 +75,7 @@ deleteFile "$tablesfolder"
 
 # Restore SSH config file
 if [ -f "$ssh_backup" ]; then
-	echo -n "Restore backed up version of $ssh_conf? [y/n]"
+	echo -n " Restore backed up version of $ssh_conf? [y/n]"
 	read -n 1 restoressh
 	printf "\n"
 	if [[ $restoressh != "y" ]]; then
@@ -96,7 +96,7 @@ if [ -n "$sshd_pam_edited" ]; then
 	fi
 fi
 
-echo -n "Restart sshd? [y/n]"
+echo -n " Restart sshd? [y/n]"
 read -n 1 restartssh
 printf "\n"
 if [[ $restartssh == "y" ]]; then

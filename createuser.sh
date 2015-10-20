@@ -17,7 +17,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014-2015 RIKEN AICS. All rights reserved
 
-version="0.33"
+version="0.34a01"
 echo "$0 v$version"
 
 # Initialization
@@ -49,7 +49,7 @@ username=$1
 image=$2
 public_key_file=$3
 
-source ./install.sh -c
+eval $(./install.sh -c)
 if [ ! -f "$diaasconfig" ]; then
 	echo "Configuration file not found. DIaaS may not have been installed."
 	exit 1
@@ -171,7 +171,7 @@ then
     echo "ERROR: Cannot connect to Docker API with $dockercommand"
     echo "Restarting socat proxy"
     kill $socatpid
-    ./socat-start.sh $dockerport
+    ./socat-start.sh savepid
 	if [ ! -f socat.pid ]; then
 		printf "$format"  "socat" "failed"
 		exit 1
@@ -179,5 +179,5 @@ then
 	socatpid=$(cat socat.pid)
 	# Delete file with socat PID
 	rm socat.pid
-	printf "$format"  "socat" "started with PID $socatpid"
+	printf "$format" "socat" "started with PID $socatpid"
 fi

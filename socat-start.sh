@@ -6,7 +6,6 @@
 # replaced with new PID.
 #
 # Parameters:
-#	docker port number (optional)
 #	"savepid" flag to save socat pid to file (optional)
 #
 # Requires:
@@ -18,10 +17,14 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.33"
+version="0.34a01"
+
+if [[ $debug ]]; then
+	echo "$@"
+fi
 
 # Read parameters from diaas config file
-source ./install.sh -c
+eval $(./install.sh -c)
 if [ ! -f "$diaasconfig" ]; then
 	echo "Configuration file not found. DIaaS may not have been installed."
 	exit 1
@@ -31,15 +34,6 @@ source $diaasconfig
 # Set port number and savepid flag
 port=$dockerport
 if [[ -n "$1" ]]; then
-	digits="$(echo $1 | grep  -E [0-9]+)"
-	savepidtest="$(echo $1 | grep savepid)"
-	if [[ -n "$digits" ]]; then
-		port=$1
-	elif [[ -n "$savepidtest" ]]; then
-		savepid="yes"
-	fi
-fi
-if [[ -n "$2" ]]; then
 	savepidtest="$(echo $1 | grep savepid)"
 	if [[ -n "$savepidtest" ]]; then
 		savepid="yes"
@@ -49,14 +43,14 @@ fi
 # Check that socat is installed
 socat &>/dev/null
 if [[ $? -gt 1 ]]; then
-	echo -n "Install socat? [y/n]"
+	echo -n " Install socat? [y/n]"
 	read -n 1 install
 	printf "\n"
 	if [[ $install != "y" ]]; then
 		printf "Bye!\n"
 		exit 1
 	fi
-	apt-get install socat
+	apt-get install -y socat
 fi
 
 # Check if socat already running
@@ -68,7 +62,9 @@ else
 	socat TCP-LISTEN:$port,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock &
 	pid=$!
 	status=$?
-	echo "Socat started with PID $pid with status $status"
+	if [[ $debug ]]; then
+		echo "Socat started with PID $pid with status $status"
+	fi
 	if grep -qE "socatpid=\"[0-9]+\"" "$diaasconfig"; then
 		error=$( { sed -ri "s/socatpid=\"[0-9]+\"/socatpid=$pid/" "$diaasconfig" > /dev/null; } 2>&1 )
 		if [ -n "$error" ]; then

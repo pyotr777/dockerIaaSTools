@@ -5,8 +5,8 @@
 
 basefile="install.sh"
 
-version=$(grep "version=" $basefile)
-eval "$version"
+tmp=$(grep "version=" $basefile)
+eval "$tmp"
 
 if [ $# -lt 1 ]; then
 	echo "Need new version number"
@@ -16,7 +16,7 @@ fi
 newversion=$1
 echo "New version $newversion"
 if grep -q GNU <<<$(sed --version 2>/dev/null); then  
-	sed -i "s/$version/$newversion/" *.sh 
+	sed -ri "s/$version[a-z0-9]*/$newversion/" *.sh 
 else
-	sed -i '' "s/$version/$newversion/" *.sh 
+	sed -Ei '' "s/$version[a-z0-9]*/$newversion/" *.sh 
 fi

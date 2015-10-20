@@ -11,7 +11,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (c) 2014-2015 RIKEN AICS.
 
-version="0.33"
+version="0.34a01"
 
 if [[ -z $1 ]]
 	then
@@ -31,7 +31,7 @@ usr=$1
 container=$usr
 image="localhost/$usr"
 
-source ./install.sh -c
+eval $(./install.sh -c)
 source $diaasconfig
 
 userExists() {
