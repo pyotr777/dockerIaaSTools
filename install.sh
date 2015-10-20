@@ -15,7 +15,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.32a03"
+version="0.33"
 debug=1
 
 
@@ -129,27 +129,12 @@ if [[ -n "$pid" ]]; then
 	exit 1
 fi
 
-
-# Start socat proxy
-./socat-start.sh $dockerport
-if [ ! -f socat.pid ]; then
-	printf "$format"  "socat" "failed"
-	exit 1
-fi
-socatpid=$(cat socat.pid)
-# Delete file with socat PID
-rm socat.pid
-printf "$format"  "socat" "started with PID $socatpid"
-
 # Write variables to config file diaas_installed.conf
 touch $diaasconfig
 printf "" > $diaasconfig
 for var in "${config_vars[@]}"; do
 	echo "$var=\"$(eval echo \$$var)\"" >> $diaasconfig
 done
-if [[ -n "$socatpid" ]]; then
-	echo "socatpid=\"$socatpid\"" >> $diaasconfig
-fi
 echo "Configuration saved to file $diaasconfig"
 
 
@@ -167,7 +152,7 @@ fi
 
 # Group diaasgroup - create if not exists
 
-if [ -z "$(cat /etc/group | grep "$diaasgroup:")" ]; then
+if [ -z "$(cat /etc/group | grep $diaasgroup:)" ]; then
 	echo -n "Create group $diaasgroup? [y/n]"
 	read -n 1 creategroup
 	printf "\n"
@@ -268,7 +253,8 @@ if [ -f "$ssh_conf" ]; then
 	elif grep -qi "forcecommand" "$ssh_conf"; then
 		# /etc/ssh/sshd_conf has differnet ForceCommand
 		# Need to edit manually
-		printf "$format" "$ssh_conf" "already has ForceCommand. Need manual editing.\nCheck that it has the following:\n"
+		printf "$format" "$ssh_conf" "already has ForceCommand. Need manual editing."
+		echo "Check that it has the following:"
 		echo "AllowAgentForwarding yes"
 		echo "GatewayPorts yes"
 		echo "Match Group $diaasgroup"
@@ -300,5 +286,19 @@ if [[ $restartssh == "y" ]]; then
 else
 	printf "Please, restart sshd later with:\n\$ sudo service ssh restart\n"
 fi
+
+# Start socat proxy
+./socat-start.sh $dockerport "savepid"
+if [ ! -f socat.pid ]; then
+	printf "$format"  "socat" "failed"
+	exit 1
+fi
+socatpid=$(cat socat.pid)
+if [[ -n "$socatpid" ]]; then
+	echo "socatpid=\"$socatpid\"" >> $diaasconfig
+fi
+# Delete file with socat PID
+rm socat.pid
+printf "$format"  "socat" "started with PID $socatpid"
 
 echo "Installation comlete."
