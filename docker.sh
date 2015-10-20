@@ -12,6 +12,7 @@
 
 version="0.33a01"
 
+# Will be substituted with path to cofig file during installation
 source diaasconfig
 
 # mount table file lists folders, that should be mount on container startup (docker run command)
@@ -89,7 +90,6 @@ getFreePort() {
 # Read from mountfile, search for username@... line,
 # return part of Docker run command for mounting volumes
 # like this: "-v hostdir:contdir -v hostdir:contdir:ro"
-
 getMounts() {
     mount_command=""
     mounts=$(grep $1 $mountfile | awk -F"@" '{ print $2 }')  
@@ -112,6 +112,12 @@ fi
 if [ ! -f $usersfile ];then
     echo "Cannot find file $usersfile" >> $forcecommandlog
     exit 1;
+fi
+
+# Start socat if docker is not accessible with dockercommand
+error=$( { $dockercommand ps} 2>&1 )
+if [[ -n "$error" ]]; then
+	${install_path}/socat-start.sh >> $forcecommandlog
 fi
 
 echo "$0 $version" >> $forcecommandlog
@@ -137,7 +143,6 @@ if [ $debuglog -eq 1 ]; then
 fi
 
 # Check SSH_ORIGINAL_COMMAND
-
 if [ "$SSH_ORIGINAL_COMMAND" = commit ]; then 
     if [ $debuglog -eq 1 ]; then
         echo "Commit container $cont_name" >> $forcecommandlog

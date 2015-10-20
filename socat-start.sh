@@ -70,8 +70,8 @@ else
 	status=$?
 	echo "Socat started with PID $pid with status $status"
 	if grep -qE "socatpid=\"[0-9]+\"" "$diaasconfig"; then
-		ERROR=$( { sed -ri "s/socatpid=\"[0-9]+\"/socatpid=$pid/" "$diaasconfig" > /dev/null; } 2>&1 )
-		if [ -n "$ERROR" ]; then
+		error=$( { sed -ri "s/socatpid=\"[0-9]+\"/socatpid=$pid/" "$diaasconfig" > /dev/null; } 2>&1 )
+		if [ -n "$error" ]; then
 			# OSX version
 			sed -E -i '' "s/socatpid=\"[0-9]+\"/socatpid=$pid/" "$diaasconfig"
 		fi

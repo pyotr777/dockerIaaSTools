@@ -9,16 +9,15 @@
 #  path to ssh-key (optional)
 #  commands to be executed in container (optional)
 #
-# Created by Bryzgalov Peter
-# Copyright (c) 2015 RIKEN AICS. All rights reserved
-#
-# Requirements:
+# Requires:
 #	tar
 #	sshd running on port 22 on local computer
 #	ssh-agent
+#
+# Created by Bryzgalov Peter
+# Copyright (c) 2015 RIKEN AICS. All rights reserved
 
-
-version="0.46"
+version="0.33"
 debug=""
 
 usage="Usage:\nconnect.sh -u <username> -h <server address> -p <server port number> \
