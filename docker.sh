@@ -10,7 +10,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 RIKEN AICS.
 
-version="0.34a02"
+version="0.34a03"
 
 # Will be substituted with path to cofig file during installation
 source diaasconfig
@@ -223,8 +223,7 @@ then
         container_action="start"
         sleep 1
     else 
-        if [ $debuglog -eq 1 ]
-            then
+        if [ $debuglog -eq 1 ]; then
             echo "No container. Run from image." >> $forcecommandlog
         fi
 
@@ -236,7 +235,7 @@ then
 		then
 		    moptions=" --cap-add SYS_ADMIN --device /dev/fuse --security-opt apparmor:unconfined"
 	    fi
-        options="run -d --name $cont_name $mounts $moptions -P $image"
+        options="run -d --name $cont_name $mounts $moptions -P=true $image"
         cont=$($dockercommand $options)
         if [ $debuglog -eq 1 ]
             then

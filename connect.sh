@@ -17,8 +17,8 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2015 RIKEN AICS. All rights reserved
 
-version="0.34a02"
-debug=""
+version="0.34a03"
+debug="1"
 
 usage="Usage:\nconnect.sh -u <username> -h <server address> -p <server port number> \
 -l <local directory to mount> -i <path to ssh-key> \
@@ -172,7 +172,7 @@ then  # No commands -- interactive shell login
 	sshfs -o StrictHostKeyChecking=no,UserKnownHostsFile=/dev/null,nonempty -p $free_port "$local_user@$hostIP:$path" "$path"
 	cd "$path"
 	echo "v\$version"
-	echo "mounted $path with $(ls -l | wc -l) files."
+	echo "mounted $path with \$(ls -l | wc -l) files."
 	export PATH="\$PATH:$add_path"
 RCOM
 	# Save remote commands to a file. Execute it in container.
@@ -199,7 +199,7 @@ else
 	sshfs -o StrictHostKeyChecking=no,UserKnownHostsFile=/dev/null,nonempty -p $free_port "$local_user@$hostIP:$path" "$path"
 	cd "$path"
 	echo "v\$version"
-	echo "mounted $path with $(ls -l | wc -l) files."
+	echo "mounted $path with \$(ls -l | wc -l) files."
 	export PATH="\$PATH:$add_path"
 RCOM2
 	setup_commands="$setup_commands\n$remote_commands"

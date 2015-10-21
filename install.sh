@@ -15,7 +15,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.34a02"
+version="0.34a03"
 debug=1
 
 
@@ -57,7 +57,7 @@ dockerport="4243"
 dockercommand="docker -H $dockerhost:$dockerport"
 diaasgroup="diaasgroup"
 ssh_conf="/etc/ssh/sshd_config"
-ssh_backup="${ssh_conf}.diias_back"
+ssh_backup="${ssh_conf}.diaas_back"
 sshd_pam="/etc/pam.d/sshd"
 install_path="$(pwd)"
 config_file="/etc/diias/config"
@@ -120,7 +120,7 @@ fi
 # Check that port is not used
 read pname pid junk <<< "$(sudo lsof -i TCP:$dockerport | grep -v COMMAND)"
 if [[ -n "$pid" ]]; then
-	echo "Port $dockerport is used by $pname with PID $pid"
+	echo "Port $dockerport is used by $pname with PID $pid. Use another port number (dockerport var in install.sh)."
 	exit 1
 fi
 
