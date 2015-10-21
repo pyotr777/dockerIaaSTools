@@ -17,7 +17,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014-2015 RIKEN AICS. All rights reserved
 
-version="0.34a01"
+version="0.34a02"
 echo "$0 v$version"
 
 # Initialization
@@ -55,15 +55,15 @@ if [ ! -f "$diaasconfig" ]; then
 	exit 1
 fi
 source $diaasconfig
+local_service_dir="service"
 
 # In-container locations
 counter_file="/var/lib/diaas_cc"
 stop_file="/var/lib/diaas_nostop"
-container_config="/var/lib/dockeriaas_conf"
+container_config="/var/lib/diaas_conf"
 container_home="/root"
-local_service_dir="service"
 servdir="/usr/local/bin"
-basename="/var/log/diias"
+basename="/var/log/diaas"
 ## Configuration section end
 # Array for saving variables to configuration file
 config_vars=(counter_file stop_file container_config container_home servdir basename)
@@ -111,14 +111,22 @@ then
 fi
 
 
+# Copy service folder
+cp -r $local_service_dir ${local_service_dir}_tmp
+
 # Create configuration file
-$local_config="service/config"
+local_config="${local_service_dir}_tmp/config"
 touch $local_config
-printf "" > $local_config
+echo "" > $local_config
 # Write variables to config file diaas_installed.conf
 for var in "${config_vars[@]}"; do
 	echo "$var=\"$(eval echo \$$var)\"" >> $local_config
 done
+echo "variables saved:"
+cat $local_config
+
+# Add variables Initialization into service files
+sed -r -i "s#initvariables#source $container_config#g" ${local_service_dir}_tmp/*
 
 # Create Dockerfile 
 read -r -d '' dockerfile_string <<EOF
@@ -137,14 +145,13 @@ RUN sed -r -i "s/session\s+required\s+pam_loginuid\.so/session optional pam_logi
 RUN mkdir $container_home/.ssh
 ADD $public_key_file $container_home/.ssh/authorized_keys
 
-# Add variables Initialization into service files
-RUN sed -r -i "s/initvariables/source $container_config/g" $servdir/*
-
 # Copy service directory into container
-ADD $local_service_dir/ $servdir/
+ADD ${local_service_dir}_tmp/ $servdir/
+# Copy config file
+ADD $local_config $container_config
 
 RUN echo 0 > $counter_file
-RUN printf "timeout=2\n" > $container_config
+RUN printf "timeout=2\n" >> $container_config
 RUN mkdir /logs
 
 # Disable password login
@@ -163,6 +170,9 @@ docker build -t localhost/$username .
 
 # Remove Dockerfile
 rm Dockerfile
+
+# Remove temporary service directory
+#rm -rf ${local_service_dir}_tmp
 
 # Register user and conatiner names in user table file
 echo "$username $username" >> $usersfile

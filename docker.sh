@@ -10,7 +10,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 RIKEN AICS.
 
-version="0.34a01"
+version="0.34a02"
 
 # Will be substituted with path to cofig file during installation
 source diaasconfig
@@ -276,11 +276,7 @@ if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]]
     # strace -s 2000 -f $SSH_ORIGINAL_COMMAND
 
     commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
-    if [ $debuglog -eq 1 ]
-    then
-        echo "${commands[@]}" >> $forcecommandlog
-    fi
-    "${commands[@]}"
+    
     
     # Commands for test:
     # c_path="$(HOME)/control_local"
@@ -290,14 +286,18 @@ if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]]
     # ssh -O check -S $c_path -p $PORT root@localhost >> $forcecommandlog
     # scp -o ControlPath=$c_path -t . root@localhost:/ >> $forcecommandlog
     # ssh -O exit -S $c_path -p $PORT root@localhost >> $forcecommandlog
-else
+elif [[ -n "$SSH_ORIGINAL_COMMAND" ]]; then
     commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
-    if [ $debuglog -eq 1 ]
+else
+	# Interactive login	
+	sshcommand=( ssh -p "$PORT" -Y -A -o StrictHostKeyChecking=no root@localhost )
+    commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
+fi
+if [ $debuglog -eq 1 ]
     then
         echo "${commands[@]}" >> $forcecommandlog
     fi
     "${commands[@]}"
-fi
 # -----------------------------
 
 echo "<" $(date) >> $forcecommandlog

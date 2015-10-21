@@ -11,7 +11,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (c) 2014-2015 RIKEN AICS.
 
-version="0.34a01"
+version="0.34a02"
 
 if [[ -z $1 ]]
 	then
@@ -32,7 +32,12 @@ container=$usr
 image="localhost/$usr"
 
 eval $(./install.sh -c)
+if [ ! -f "$diaasconfig" ]; then
+	echo "Configuration file not found. DIaaS may not have been installed."
+	exit 1
+fi
 source $diaasconfig
+local_service_dir="service"
 
 userExists() {
     awk -F":" '{ print $1 }' /etc/passwd | grep -x $1 > /dev/null
@@ -80,4 +85,8 @@ printf "$format" "OS user $usr" "deleted"
 groupdel $usr
 if [[ $? -eq 0 ]]; then
 	printf "$format" "OS group $usr" "deleted"
+fi
+
+if [[ -d ${local_service_dir}_tmp ]]; then
+	rm -rf ${local_service_dir}_tmp
 fi

@@ -9,6 +9,9 @@ version="0.34a01"
 
 echo "$0 v$version"
 
+# This will be replaced by createuset.sh
+initvariables
+
 if [ $# -lt 2 ]
 then
     echo 'Need file names of counter and nostop files.' >&2
@@ -43,6 +46,6 @@ flock -u 20
 echo "-$PPID  $(date +'%Y-%m-%d %H:%M:%S.%N') COUNTER=$(cat $1)" >> $log_file #read from file
 
 # Start dockerwatch.sh
-echo "-$PPID Starting dockerwatch" >> $log_file
+echo "-$PPID Starting ${dockerwatch[@]}" >> $log_file
 dockerwatch=( $servdir/dockerwatch.sh "$counter_file" "$stop_file")
 eval "nohup ${dockerwatch[@]}" >> $log_file 2>&1 &

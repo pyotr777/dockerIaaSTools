@@ -17,7 +17,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.34a01"
+version="0.34a02"
 
 if [[ $debug ]]; then
 	echo "$@"
@@ -80,4 +80,4 @@ if [[ -n "$savepid" ]]; then
 	echo $pid > socat.pid
 	# This file will be deleted right after parent process reads it
 fi
-printf "$format"  "socat" "started with PID $socatpid"
+printf "$format"  "socat" "started with PID $pid"

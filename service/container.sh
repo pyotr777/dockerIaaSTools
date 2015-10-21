@@ -43,7 +43,7 @@ then
     echo "CON: $SSH_CONNECTION" >> $log_file
     echo "ORC: $SSH_ORIGINAL_COMMAND" >> $log_file
     echo "USR: $USER" >> $log_file
-    echo "MNT: $(mount)" >> $log_file
+    echo "MNT: $(mount | grep sshfs)" >> $log_file
     echo "CLT: $SSH_CLIENT" >> $log_file
     echo "TTY: $SSH_TTY" >> $log_file
     echo "DIS: $DISPLAY" >> $log_file
