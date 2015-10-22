@@ -17,7 +17,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2015 RIKEN AICS. All rights reserved
 
-version="0.34a03"
+version="0.35"
 debug="1"
 
 usage="Usage:\nconnect.sh -u <username> -h <server address> -p <server port number> \
@@ -202,14 +202,12 @@ else
 	echo "mounted $path with \$(ls -l | wc -l) files."
 	export PATH="\$PATH:$add_path"
 RCOM2
-	setup_commands="$setup_commands\n$remote_commands"
-	echo -e $setup_commands
-
-	# Save remote commands to a file. Execute it in container.
 	
+	# Save remote commands to a file. Execute it in container.
 	echo "#!/bin/bash" > $cmd_file
-	echo "version=$version" >> $cmd_file
-	echo -e $setup_commands >> $cmd_file
+	echo "version=$version" >> $cmd_file		
+	printf "%s\n%s\n" "$setup_commands" "$remote_commands" >> $cmd_file
+
 	
 	if [ -n "$debug" ]; then
 		echo "Command file:"

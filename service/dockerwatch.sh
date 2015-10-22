@@ -14,7 +14,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2015 Riken AICS. All rights reserved
 
-version="0.34a03"
+version="0.35"
 
 echo "$0 v$version"
 

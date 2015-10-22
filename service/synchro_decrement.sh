@@ -5,7 +5,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2015 Riken AICS. All rights reserved
 
-version="0.34a03"
+version="0.35"
 
 echo "$0 v$version"
 
@@ -47,5 +47,6 @@ echo "-$PPID  $(date +'%Y-%m-%d %H:%M:%S.%N') COUNTER=$(cat $1)" >> $log_file #r
 
 # Start dockerwatch.sh
 dockerwatch=($servdir/dockerwatch.sh "$counter_file" "$stop_file")
-echo "-$PPID Starting ${dockerwatch[@]}" >> $log_file
-eval "nohup ${dockerwatch[@]} >> $log_file 2>&1 </dev/null &"
+echo "-$PPID starting: ${dockerwatch[@]}" >> $log_file
+eval "nohup ${dockerwatch[@]}" >> $log_file 2>&1 &
+echo "-$PPID quit."
