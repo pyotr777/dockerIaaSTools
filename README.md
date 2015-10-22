@@ -1,4 +1,4 @@
-# Tools for creating a basic Infrastructure-as-a-Service
+# Tools for creating a basic Infrastructure as a Service
 
 This is a set of bash-script files for creating a basic single-host IaaS on a Linux server. 
 The purpose is to give every user a personal virtual machine in the form of a docker container (http://docker.com). Users’ containers can be built from any docker image. Users have root privileges inside their containers. User can change and save their container. 

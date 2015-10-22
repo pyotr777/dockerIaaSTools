@@ -1,6 +1,6 @@
-Docker containers as a service tools
+Docker-based Infrastructure as a Service Tools
 
-Copyright 2014 RIKEN
+Copyright 2015 RIKEN
 (Developed by 
  Peter Bryzgalov, 
  HPC Usability Research Team, AICS, RIKEN  

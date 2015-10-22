@@ -18,7 +18,7 @@
 # Copyright (c) 2015 RIKEN AICS. All rights reserved
 
 version="0.35"
-debug="1"
+debug=""
 
 usage="Usage:\nconnect.sh -u <username> -h <server address> -p <server port number> \
 -l <local directory to mount> -i <path to ssh-key> \
@@ -61,7 +61,7 @@ copyRCfileAndExecute() {
 		eval "cat $cmd_file"
 		echo "....."
 	fi
-	cp_command="tar -cf - $cmd_file | ssh $SSH_PARAMETERS \"tar -xf - -C /\""
+	cp_command="tar -cf - $cmd_file | ssh $SSH_PARAMETERS \"tar -xmf - -C /\""
 	if [ -n "$debug" ]; then
 		echo "Copying RC file:"
 		echo $cp_command
