@@ -10,7 +10,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 RIKEN AICS.
 
-version="0.35"
+version="0.36a01"
 
 # Will be substituted with path to cofig file during installation
 source diaasconfig
@@ -274,8 +274,10 @@ if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]]
     # This works
     # strace -s 2000 -f $SSH_ORIGINAL_COMMAND
 
-    commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
-    
+    # commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
+    echo "docker exec $cont_name \"$SSH_ORIGINAL_COMMAND\"" >> $forcecommandlog
+    docker exec $cont_name "$SSH_ORIGINAL_COMMAND"
+
     
     # Commands for test:
     # c_path="$(HOME)/control_local"
