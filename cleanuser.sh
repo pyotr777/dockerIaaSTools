@@ -11,7 +11,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (c) 2014-2015 RIKEN AICS.
 
-version="0.36a01"
+version="0.40a02"
 
 if [[ -z $1 ]]
 	then
