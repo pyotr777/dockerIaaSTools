@@ -1,5 +1,6 @@
 ._*
 .*
+diaas_installed.conf
 !.gitignore
 .DS*
 *.pub
@@ -7,3 +8,4 @@
 stracetest
 *_rsa
 *tmp_*
+*_tmp*

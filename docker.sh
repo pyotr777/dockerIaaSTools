@@ -272,21 +272,8 @@ if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]]
     echo "SCP detected  at $(pwd)" >> $forcecommandlog
     
     # This works
-    # strace -s 2000 -f $SSH_ORIGINAL_COMMAND
-
-    # commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
-    echo "docker exec $cont_name \"$SSH_ORIGINAL_COMMAND\"" >> $forcecommandlog
-    docker exec $cont_name "$SSH_ORIGINAL_COMMAND"
-
+    socat -v - SYSTEM:"$SSH_ORIGINAL_COMMAND",reuseaddr 2> /scp.log
     
-    # Commands for test:
-    # c_path="$(HOME)/control_local"
-    # echo "Creating controlpath at $c_path" >> $forcecommandlog
-    # ssh -p "$PORT" -A -M -S "$c_path" -o StrictHostKeyChecking=no -o ControlPersist=yes root@localhost hostname >> $forcecommandlog
-    # echo "SSH master connected $!" >> $forcecommandlog
-    # ssh -O check -S $c_path -p $PORT root@localhost >> $forcecommandlog
-    # scp -o ControlPath=$c_path -t . root@localhost:/ >> $forcecommandlog
-    # ssh -O exit -S $c_path -p $PORT root@localhost >> $forcecommandlog
 elif [[ -n "$SSH_ORIGINAL_COMMAND" ]]; then
     commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
 else
