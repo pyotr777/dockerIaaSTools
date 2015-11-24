@@ -266,15 +266,24 @@ echo "> $(date)" >> $forcecommandlog
 # -----------------------------
 
 # SCP
-if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]]
-	then 
-	tmpfile="$HOME/scp.log"
-	echo "SCP detected  at $(pwd)" >> $forcecommandlog
-	
-	# This works
-	socat -v - SYSTEM:"scp -t /dev/null",reuseaddr 2> $tmpfile
-	commands=( $dockercommand cp "$tmpfile" "$cont_name:/root" )
-	echo "Command: $commands" >> $forcecommandlog
+if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]];then 
+    tmpfile="$HOME/scp.log"
+    echo "SCP detected  at $(pwd)" >> $forcecommandlog
+    # Get filename
+    path=$(echo "$SSH_ORIGINAL_COMMAND" | sed 's/scp *\-[tf] *\([a-zA-Z0-9._/\-]*\).*/\1/')
+    #   
+    if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ *\-t\ * ]];then
+            echo "Destination path is $path" >> $forcecommandlog
+            socat -v - SYSTEM:"scp -t /dev/null",reuseaddr 2> $tmpfile
+            commands=( $dockercommand cp "$tmpfile" "$cont_name:/root" )
+    else
+            echo "Source path is $path" >> $forcecommandlog
+            commands=( $dockercommand cp "$cont_name:/root/$path" "$path" )
+            echo "${commands[@]}" >> $forcecommandlog
+            "${commands[@]}"
+            commands=( scp -f "$path" )
+    fi  
+    echo "Command: $commands" >> $forcecommandlog
 elif [[ -n "$SSH_ORIGINAL_COMMAND" ]]; then
 	commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
 else
