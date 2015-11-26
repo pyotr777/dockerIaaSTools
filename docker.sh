@@ -10,7 +10,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 RIKEN AICS.
 
-version="0.40a07_dockercp"
+version="0.40a15_dockercp"
 
 # Will be substituted with path to cofig file during installation
 source diaasconfig
@@ -104,19 +104,35 @@ getMounts() {
 	echo $mount_command
 }
 
+# Return correct path to file
+dirs=()
+getPath() {
+	homedir=$($dockercommand exec $cont_name env | grep "HOME=")
+	homedir=${homedir:5}
+	currentdir=$( IFS=$'/'; echo "${dirs[*]}" )
+	echo "$homedir/$currentdir/$1"
+}
+
+# Add directory to dirs array
+addPath() {
+	n=${#dirs[@]}
+	dirs[$n]="$1"
+}
+
+# Remove last element from dirs array
+delPath() {
+	n=${#dirs[@]}
+	p=$((n-1))
+	unset dirs[$p]	
+}
 
 # Parse line with path and mode
 # Sample line: D0744 0 tmp_dir
 pathmode() {
 	read -ra pathmode <<< $(echo "$1")
-	echo "par1=$1" >> $forcecommandlog
 	mod="${pathmode[0]}"
 	mod="${mod:1}"
 	path="${pathmode[2]}"
-	homedir=$($dockercommand exec $cont_name env | grep "HOME=")
-	homedir=${homedir:5}
-	path="$homedir/$path"
-	echo "mod=$mod;path=$path" >> $forcecommandlog	
 	echo "mod=$mod;path=$path"
 }
 
@@ -127,11 +143,9 @@ infile=0  # flag that we're reading next line of file contents
 copyfile="$HOME/tmp_file" # contents of the file to copy
 contents=""
 parseLogLine() {
-	echo "###$line###" >> $forcecommandlog
-	
 	if [[ $line =~ ^[.]*[\>\<] ]]; then
 		# Service string
-		echo "serv" >> $forcecommandlog
+		echo "	$line" >> $forcecommandlog
 		if [[ "$infile" == "1" ]]; then
 			echo -e "COPY $mod:$path" >> $forcecommandlog
 			# Finished reading file
@@ -145,20 +159,25 @@ parseLogLine() {
 		fi
 	elif [[ $line =~ ^[CD][0-9]+ ]]; then
 		# Have mode line
+		echo "	$line" >> $forcecommandlog
 		if [[ $line =~ ^C ]]; then
 			# Have file
 			eval $(pathmode "$line")
+			path=$(getPath $path)
 			echo "mod $mod $path" >> $forcecommandlog
 		elif [[ $line =~ ^D ]]; then 
 			# Have directory
 			# Create new directory and set its permissions
 			eval $(pathmode "$line")
-			echo "$mod mod $path" >> $forcecommandlog
-			echo "$dockercommand exec $cont_name mkdir \"$path\"" >> $forcecommandlog
+			addPath "$path"  # Add new directory to dirs array
+			path=$(getPath)	
 			$dockercommand exec $cont_name mkdir -p $path
 			$dockercommand exec $cont_name chmod $mod $path
 			echo "Created dir $path with $mod"  >> $forcecommandlog
 		fi
+	elif [[ $line =~ ^E ]]; then
+		# End directory
+		delPath
 	else
 		# File contents
 		if [[ "$infile" == "0" ]]; then
