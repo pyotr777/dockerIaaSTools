@@ -10,11 +10,11 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 RIKEN AICS.
 
-version="0.40a05_dockercp"
+version="0.40a07_dockercp"
 
 # Will be substituted with path to cofig file during installation
-#source diaasconfig
-source /home/peter/dockerIaaSTools/diaas_installed.conf
+source diaasconfig
+
 # mount table file lists folders, that should be mount on container startup (docker run command)
 # file format:
 # username@mountcommand1;mountcommand2;...
@@ -104,21 +104,70 @@ getMounts() {
 	echo $mount_command
 }
 
-# Parse scp logs in file
-# and get file path, mod and file contents
-getPathModFile() {
-	if [[ -z "$1" ]]; then
-		return
-	fi
 
-	read -ra pathmode <<< $(cat /home/scpuser/scp.log | grep -v "^[.]*<" | grep -v "^[.]*>" | grep "^[CD][0-9]\\+\ [0-9]\\+")
+# Parse line with path and mode
+# Sample line: D0744 0 tmp_dir
+pathmode() {
+	read -ra pathmode <<< $(echo "$1")
+	echo "par1=$1" >> $forcecommandlog
 	mod="${pathmode[0]}"
-	path="${pathmode[2]}"
-	type="${mod:0:1}"
 	mod="${mod:1}"
-	echo "type=$type" >> $forcecommandlog
-	echo "path=\"$path\""
-	echo "mod=\"$mod\""
+	path="${pathmode[2]}"
+	homedir=$($dockercommand exec $cont_name env | grep "HOME=")
+	homedir=${homedir:5}
+	path="$homedir/$path"
+	echo "mod=$mod;path=$path" >> $forcecommandlog	
+	echo "mod=$mod;path=$path"
+}
+
+# Parse scp logs one line at a time
+# get file path, mod and type
+# or save file contents into a new file in container
+infile=0  # flag that we're reading next line of file contents
+copyfile="$HOME/tmp_file" # contents of the file to copy
+contents=""
+parseLogLine() {
+	echo "###$line###" >> $forcecommandlog
+	
+	if [[ $line =~ ^[.]*[\>\<] ]]; then
+		# Service string
+		echo "serv" >> $forcecommandlog
+		if [[ "$infile" == "1" ]]; then
+			echo -e "COPY $mod:$path" >> $forcecommandlog
+			# Finished reading file
+			# Copy new file in container and set its access permissions
+			echo -e "$contents" > $copyfile
+			$dockercommand cp $copyfile "$cont_name:$path"			
+			$dockercommand exec $cont_name chmod $mod $path
+			$dockercommand exec $cont_name ls -l $path >> $forcecommandlog
+			contents=""
+			infile=0
+		fi
+	elif [[ $line =~ ^[CD][0-9]+ ]]; then
+		# Have mode line
+		if [[ $line =~ ^C ]]; then
+			# Have file
+			eval $(pathmode "$line")
+			echo "mod $mod $path" >> $forcecommandlog
+		elif [[ $line =~ ^D ]]; then 
+			# Have directory
+			# Create new directory and set its permissions
+			eval $(pathmode "$line")
+			echo "$mod mod $path" >> $forcecommandlog
+			echo "$dockercommand exec $cont_name mkdir \"$path\"" >> $forcecommandlog
+			$dockercommand exec $cont_name mkdir -p $path
+			$dockercommand exec $cont_name chmod $mod $path
+			echo "Created dir $path with $mod"  >> $forcecommandlog
+		fi
+	else
+		# File contents
+		if [[ "$infile" == "0" ]]; then
+			infile=1
+			contents="$line"
+		else
+			contents="$contents"$'\n'"$line"
+		fi
+	fi	
 }
 
 if [ ! -w $forcecommandlog ];then
@@ -284,14 +333,22 @@ echo "> $(date)" >> $forcecommandlog
 # SCP
 if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]];then 
     tmpfile="$HOME/scp.log"
+    tmp_dir="$HOME/tmp_scp_dir"
+    mkdir -p $tmp_dir
     echo "SCP detected  at $(pwd)" >> $forcecommandlog
     # Get filename
-    path=$(echo "$SSH_ORIGINAL_COMMAND" | sed 's/scp *\-[tf] *\([a-zA-Z0-9._/\-]*\).*/\1/')
+    path=$(echo "$SSH_ORIGINAL_COMMAND" | sed 's/^scp\( -[a-z]\)*//')
     #   
-    if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ *\-t\ * ]];then
+    if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ .*-t ]];then
             echo "Destination path is $path" >> $forcecommandlog
-            socat -v - SYSTEM:"scp -t /dev/null",reuseaddr 2> $tmpfile
-            getPathModFile $tmpfile
+            short_scp_commad=$(expr "$SSH_ORIGINAL_COMMAND" : '^\(scp\( -[a-z]\)*\)')
+            echo "scp command: $short_scp_commad"  >> $forcecommandlog
+            socat -v - SYSTEM:"$short_scp_commad $tmp_dir",reuseaddr 2> $tmpfile
+
+            while read line; do
+            	parseLogLine $line
+            done <$tmpfile
+            
             echo "Path=$path" >> $forcecommandlog
             echo "Mod =$mod" >> $forcecommandlog
             #commands=( $dockercommand cp "$tmpfile" "$cont_name:/root" )
@@ -301,8 +358,8 @@ if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]];then
             echo "${commands[@]}" >> $forcecommandlog
             "${commands[@]}"
             commands=( scp -f "$path" )
-    fi  
-    echo "Command: $commands" >> $forcecommandlog
+    fi
+    rm -rf $tmp_dir
 elif [[ -n "$SSH_ORIGINAL_COMMAND" ]]; then
 	commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
 else
