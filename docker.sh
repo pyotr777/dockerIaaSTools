@@ -10,11 +10,11 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 RIKEN AICS.
 
-version="0.40a02"
+version="0.40a05_dockercp"
 
 # Will be substituted with path to cofig file during installation
-source diaasconfig
-
+#source diaasconfig
+source /home/peter/dockerIaaSTools/diaas_installed.conf
 # mount table file lists folders, that should be mount on container startup (docker run command)
 # file format:
 # username@mountcommand1;mountcommand2;...
@@ -104,6 +104,22 @@ getMounts() {
 	echo $mount_command
 }
 
+# Parse scp logs in file
+# and get file path, mod and file contents
+getPathModFile() {
+	if [[ -z "$1" ]]; then
+		return
+	fi
+
+	read -ra pathmode <<< $(cat /home/scpuser/scp.log | grep -v "^[.]*<" | grep -v "^[.]*>" | grep "^[CD][0-9]\\+\ [0-9]\\+")
+	mod="${pathmode[0]}"
+	path="${pathmode[2]}"
+	type="${mod:0:1}"
+	mod="${mod:1}"
+	echo "type=$type" >> $forcecommandlog
+	echo "path=\"$path\""
+	echo "mod=\"$mod\""
+}
 
 if [ ! -w $forcecommandlog ];then
 	touch $forcecommandlog
@@ -275,7 +291,10 @@ if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]];then
     if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ *\-t\ * ]];then
             echo "Destination path is $path" >> $forcecommandlog
             socat -v - SYSTEM:"scp -t /dev/null",reuseaddr 2> $tmpfile
-            commands=( $dockercommand cp "$tmpfile" "$cont_name:/root" )
+            getPathModFile $tmpfile
+            echo "Path=$path" >> $forcecommandlog
+            echo "Mod =$mod" >> $forcecommandlog
+            #commands=( $dockercommand cp "$tmpfile" "$cont_name:/root" )
     else
             echo "Source path is $path" >> $forcecommandlog
             commands=( $dockercommand cp "$cont_name:/root/$path" "$path" )
