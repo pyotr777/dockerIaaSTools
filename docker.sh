@@ -10,7 +10,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 RIKEN AICS.
 
-version="0.40a02"
+version="0.40a26"
 
 # Will be substituted with path to cofig file during installation
 source diaasconfig
@@ -104,6 +104,18 @@ getMounts() {
 	echo $mount_command
 }
 
+# Execute commands
+# and save them to logfile
+log_execute() {
+	if [[ -z "$1" ]]; then
+		return
+	fi
+	commands="$1"
+	echo "Executing: $commands" >> $forcecommandlog
+    $commands
+    echo "---" >> $forcecommandlog
+    return
+}
 
 if [ ! -w $forcecommandlog ];then
 	touch $forcecommandlog
@@ -265,23 +277,36 @@ echo "> $(date)" >> $forcecommandlog
 # Execute commands in container
 # -----------------------------
 
+echo "ssh to container test" >> $forcecommandlog
+#sshcommand="ssh -p $PORT -Y -A -o StrictHostKeyChecking=no root@localhost hostname"
+# log_execute "$sshcommand"
+
+
 # SCP
 if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]];then 
     tmpfile="$HOME/scp.log"
     echo "SCP detected  at $(pwd)" >> $forcecommandlog
+        
     # Get filename
     path=$(echo "$SSH_ORIGINAL_COMMAND" | sed 's/scp *\-[tf] *\([a-zA-Z0-9._/\-]*\).*/\1/')
-    #   
-    if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ *\-t\ * ]];then
-            echo "Destination path is $path" >> $forcecommandlog
-            socat -v - SYSTEM:"scp -t /dev/null",reuseaddr 2> $tmpfile
-            commands=( $dockercommand cp "$tmpfile" "$cont_name:/root" )
+    if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ \.*\-t\ * ]];then
+		#  Copy into container
+        echo "Destination path is $path" >> $forcecommandlog
+        # TODO: send stderr from socat into pipe,
+        # filter out lines starting with <
+        # filter out symbols ".>"
+        # pipe into sshcommand "$SSH_ORIGINAL_COMMAND"
+        #log_execute "$commands"
+        socat -v - SYSTEM:"scp -t /dev/null",reuseaddr 2>&1  | "$dockercommand exec $cont_name \"tar xf - ~/scp.log\""
+        # commands=( $dockercommand cp "$tmpfile" "$cont_name:/root" )
     else
-            echo "Source path is $path" >> $forcecommandlog
-            commands=( $dockercommand cp "$cont_name:/root/$path" "$path" )
-            echo "${commands[@]}" >> $forcecommandlog
-            "${commands[@]}"
-            commands=( scp -f "$path" )
+    	# Copy from container
+        echo "Source path is $path" >> $forcecommandlog
+        commands=( $dockercommand cp "$cont_name:/root/$path" "$path" )
+        log_execute "${commands[@]}"
+        #echo "${commands[@]}" >> $forcecommandlog
+        #"${commands[@]}"
+        commands=( scp -f "$path" )
     fi  
     echo "Command: $commands" >> $forcecommandlog
 elif [[ -n "$SSH_ORIGINAL_COMMAND" ]]; then
@@ -289,7 +314,7 @@ elif [[ -n "$SSH_ORIGINAL_COMMAND" ]]; then
 else
 	# Interactive login	
 	sshcommand=( ssh -p "$PORT" -Y -A -o StrictHostKeyChecking=no root@localhost )
-	commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
+	commands=( "${sshcommand[@]}")
 fi
 if [ $debuglog -eq 1 ]
 then

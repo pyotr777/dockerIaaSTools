@@ -15,7 +15,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.40a02"
+version="0.40a10"
 debug=1
 
 
@@ -160,13 +160,6 @@ fi
 # Group diaasgroup - create if not exists
 
 if [ -z "$(cat /etc/group | grep $diaasgroup:)" ]; then
-	echo -n " Create group $diaasgroup? [y/n]"
-	read -n 1 creategroup
-	printf "\n"
-	if [[ $creategroup != "y" ]]; then
-		echo "Bye!"
-		exit 0
-	fi
 	groupadd "$diaasgroup"
 	printf "$format" "Group $diaasgroup" "created"
 else
