@@ -10,7 +10,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 RIKEN AICS.
 
-version="0.40a15_dockercp"
+version="0.40a17_dockercp"
 
 # Will be substituted with path to cofig file during installation
 source diaasconfig
@@ -104,13 +104,18 @@ getMounts() {
 	echo $mount_command
 }
 
-# Return correct path to file
-dirs=()
-getPath() {
+# Return home directory in container (e.g. /root)
+getContainerHome() {
 	homedir=$($dockercommand exec $cont_name env | grep "HOME=")
 	homedir=${homedir:5}
+	echo "$homedir"
+}
+
+# Return destination path, relative to home directory
+dirs=()
+getPath() {	
 	currentdir=$( IFS=$'/'; echo "${dirs[*]}" )
-	echo "$homedir/$currentdir/$1"
+	echo "$currentdir/$1"
 }
 
 # Add directory to dirs array
@@ -147,33 +152,36 @@ parseLogLine() {
 		# Service string
 		echo "	$line" >> $forcecommandlog
 		if [[ "$infile" == "1" ]]; then
-			echo -e "COPY $mod:$path" >> $forcecommandlog
 			# Finished reading file
 			# Copy new file in container and set its access permissions
-			echo -e "$contents" > $copyfile
-			$dockercommand cp $copyfile "$cont_name:$path"			
-			$dockercommand exec $cont_name chmod $mod $path
-			$dockercommand exec $cont_name ls -l $path >> $forcecommandlog
+			# echo -e "$contents" > $copyfile
+			copyfile="$host_tmp_dir/$path"
+			homedir=$(getContainerHome)
+			echo "COPY $mod:$copyfile->$cont_name:$homedir/$path" >> $forcecommandlog
+			$dockercommand cp $copyfile "$cont_name:$homedir/$path"			
+			$dockercommand exec $cont_name chmod $mod $homedir/$path
+			$dockercommand exec $cont_name ls -l $homedir/$path >> $forcecommandlog
 			contents=""
 			infile=0
 		fi
 	elif [[ $line =~ ^[CD][0-9]+ ]]; then
 		# Have mode line
 		echo "	$line" >> $forcecommandlog
+		homedir=$(getContainerHome)
 		if [[ $line =~ ^C ]]; then
 			# Have file
 			eval $(pathmode "$line")
 			path=$(getPath $path)
-			echo "mod $mod $path" >> $forcecommandlog
+			echo "mod $mod $homedir/$path" >> $forcecommandlog
 		elif [[ $line =~ ^D ]]; then 
 			# Have directory
 			# Create new directory and set its permissions
 			eval $(pathmode "$line")
 			addPath "$path"  # Add new directory to dirs array
 			path=$(getPath)	
-			$dockercommand exec $cont_name mkdir -p $path
-			$dockercommand exec $cont_name chmod $mod $path
-			echo "Created dir $path with $mod"  >> $forcecommandlog
+			$dockercommand exec $cont_name mkdir -p $homedir/$path
+			$dockercommand exec $cont_name chmod $mod $homedir/$path
+			echo "Created dir $homedir/$path with $mod in container"  >> $forcecommandlog
 		fi
 	elif [[ $line =~ ^E ]]; then
 		# End directory
@@ -352,19 +360,20 @@ echo "> $(date)" >> $forcecommandlog
 # SCP
 if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]];then 
     tmpfile="$HOME/scp.log"
-    tmp_dir="$HOME/tmp_scp_dir"
-    mkdir -p $tmp_dir
+    host_tmp_dir="$HOME/tmp_scp_dir"
+    mkdir -p $host_tmp_dir
     echo "SCP detected  at $(pwd)" >> $forcecommandlog
+    short_scp_commad=$(expr "$SSH_ORIGINAL_COMMAND" : '^\(scp\( -[a-z]\)*\)')
+    echo "scp command: $short_scp_commad"  >> $forcecommandlog
     # Get filename
-    path=$(echo "$SSH_ORIGINAL_COMMAND" | sed 's/^scp\( -[a-z]\)*//')
+    path=$(echo "$SSH_ORIGINAL_COMMAND" | sed 's/^scp\( -[a-z]\)* //')
     #   
     if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ .*-t ]];then
             echo "Destination path is $path" >> $forcecommandlog
-            short_scp_commad=$(expr "$SSH_ORIGINAL_COMMAND" : '^\(scp\( -[a-z]\)*\)')
-            echo "scp command: $short_scp_commad"  >> $forcecommandlog
-            socat -v - SYSTEM:"$short_scp_commad $tmp_dir",reuseaddr 2> $tmpfile
-
-            while read line; do
+            socat -v - SYSTEM:"$short_scp_commad $host_tmp_dir",reuseaddr 2> $tmpfile
+            echo "Files saved to $host_tmp_dir on host" >> $forcecommandlog
+            ls -la $host_tmp_dir  >> $forcecommandlog
+	        while read line; do
             	parseLogLine $line
             done <$tmpfile
             
@@ -372,13 +381,18 @@ if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]];then
             echo "Mod =$mod" >> $forcecommandlog
             #commands=( $dockercommand cp "$tmpfile" "$cont_name:/root" )
     else
-            echo "Source path is $path" >> $forcecommandlog
-            commands=( $dockercommand cp "$cont_name:/root/$path" "$path" )
+            echo "Source path is #$path#" >> $forcecommandlog
+            homedir=$(getContainerHome)
+            commands=( $dockercommand cp "$cont_name:$homedir/$path" "$host_tmp_dir/$path" )
             echo "${commands[@]}" >> $forcecommandlog
             "${commands[@]}"
-            commands=( scp -f "$path" )
+            ls -la "$host_tmp_dir/$path"  >> $forcecommandlog
+            commands=( $short_scp_commad "$host_tmp_dir/$path" )
+            echo "${commands[@]}" >> $forcecommandlog
+            "${commands[@]}"
+            commands=()
     fi
-    rm -rf $tmp_dir
+    # rm -rf $host_tmp_dir
 elif [[ -n "$SSH_ORIGINAL_COMMAND" ]]; then
 	commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
 else
