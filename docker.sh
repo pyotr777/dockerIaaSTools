@@ -10,7 +10,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 RIKEN AICS.
 
-version="0.40a17_dockercp"
+version="0.40b19_dockercp"
 
 # Will be substituted with path to cofig file during installation
 source diaasconfig
@@ -373,26 +373,28 @@ if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]];then
             socat -v - SYSTEM:"$short_scp_commad $host_tmp_dir",reuseaddr 2> $tmpfile
             echo "Files saved to $host_tmp_dir on host" >> $forcecommandlog
             ls -la $host_tmp_dir  >> $forcecommandlog
-	        while read line; do
-            	parseLogLine $line
-            done <$tmpfile
-            
-            echo "Path=$path" >> $forcecommandlog
-            echo "Mod =$mod" >> $forcecommandlog
-            #commands=( $dockercommand cp "$tmpfile" "$cont_name:/root" )
+            echo "COPY $host_tmp_dir/*->$cont_name:$path"  >> $forcecommandlog
+	        $dockercommand cp $host_tmp_dir/* "$cont_name:$path" 
+	        rm $tmpfile
     else
-            echo "Source path is #$path#" >> $forcecommandlog
-            homedir=$(getContainerHome)
-            commands=( $dockercommand cp "$cont_name:$homedir/$path" "$host_tmp_dir/$path" )
+            echo "Source path is $path" >> $forcecommandlog
+            if [[ "${path:0:1}" == "/" ]]; then
+            	# Absolute path
+            	homedir="" 
+            else
+            	# Relative path
+            	homedir="$(getContainerHome)/"
+            fi
+            commands=( $dockercommand cp "$cont_name:$homedir$path" "$host_tmp_dir/$path" )
             echo "${commands[@]}" >> $forcecommandlog
             "${commands[@]}"
             ls -la "$host_tmp_dir/$path"  >> $forcecommandlog
             commands=( $short_scp_commad "$host_tmp_dir/$path" )
             echo "${commands[@]}" >> $forcecommandlog
-            "${commands[@]}"
-            commands=()
+            "${commands[@]}"            
     fi
-    # rm -rf $host_tmp_dir
+    commands=()
+    rm -rf $host_tmp_dir    
 elif [[ -n "$SSH_ORIGINAL_COMMAND" ]]; then
 	commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
 else
