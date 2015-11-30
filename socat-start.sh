@@ -17,7 +17,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.41"
+version="0.42socat_exec01"
 
 if [[ $debug ]]; then
 	echo "$@"

@@ -10,7 +10,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 RIKEN AICS.
 
-version="0.41"
+version="0.42socat_exec01"
 
 # Will be substituted with path to cofig file during installation
 source diaasconfig
@@ -359,9 +359,9 @@ echo "> $(date)" >> $forcecommandlog
 
 # SCP
 if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]];then 
-    tmpfile="$HOME/scp.log"
-    host_tmp_dir="$HOME/tmp_scp_dir"
-    mkdir -p $host_tmp_dir
+    tmpfile="$HOME/scp.sh"
+    #host_tmp_dir="$HOME/tmp_scp_dir"
+    #mkdir -p $host_tmp_dir
     echo "SCP detected  at $(pwd)" >> $forcecommandlog
     short_scp_commad=$(expr "$SSH_ORIGINAL_COMMAND" : '^\(scp\( -[a-z]\)*\)')
     echo "scp command: $short_scp_commad"  >> $forcecommandlog
@@ -370,12 +370,21 @@ if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]];then
     #   
     if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ .*-t ]];then
             echo "Destination path is $path" >> $forcecommandlog
-            socat -v - SYSTEM:"$short_scp_commad $host_tmp_dir",reuseaddr 2> $tmpfile
-            echo "Files saved to $host_tmp_dir on host" >> $forcecommandlog
-            ls -la $host_tmp_dir  >> $forcecommandlog
-            echo "COPY $host_tmp_dir/*->$cont_name:$path"  >> $forcecommandlog
-	        $dockercommand cp $host_tmp_dir/* "$cont_name:$path" 
-	        rm $tmpfile
+            if [[ "${path:0:1}" == "/" ]]; then
+            	# Absolute path
+            	homedir="" 
+            else
+            	# Relative path
+            	homedir="$(getContainerHome)/"
+            fi
+            socat_command="$dockercommand exec -i $cont_name $short_scp_commad $homedir$path"
+ 	        echo "$socat_command" > $tmpfile
+ 	        chmod +x $tmpfile
+            command="socat - SYSTEM:$tmpfile,reuseaddr"
+            echo "Executing $command" >> $forcecommandlog
+            echo "$tmpfile: $(cat $tmpfile)" >> $forcecommandlog
+            $command 2>> $forcecommandlog
+            rm $tmpfile
     else
             echo "Source path is $path" >> $forcecommandlog
             if [[ "${path:0:1}" == "/" ]]; then
@@ -385,16 +394,17 @@ if [[ "$SSH_ORIGINAL_COMMAND" =~ ^scp\ [-a-zA-Z0-9\ \.]* ]];then
             	# Relative path
             	homedir="$(getContainerHome)/"
             fi
-            commands=( $dockercommand cp "$cont_name:$homedir$path" "$host_tmp_dir/$path" )
-            echo "${commands[@]}" >> $forcecommandlog
-            "${commands[@]}"
-            ls -la "$host_tmp_dir/$path"  >> $forcecommandlog
-            commands=( $short_scp_commad "$host_tmp_dir/$path" )
-            echo "${commands[@]}" >> $forcecommandlog
-            "${commands[@]}"            
+            socat_command="$dockercommand exec -i $cont_name $short_scp_commad $homedir$path" 
+            echo "$socat_command" > $tmpfile
+ 	        chmod +x $tmpfile
+            command="socat -v - SYSTEM:$tmpfile"
+            echo "Executing $command" >> $forcecommandlog
+            echo "$tmpfile: $(cat $tmpfile)" >> $forcecommandlog
+            $command 2>> $forcecommandlog
+            rm $tmpfile            
     fi
     commands=()
-    rm -rf $host_tmp_dir    
+    #rm -rf $host_tmp_dir    
 elif [[ -n "$SSH_ORIGINAL_COMMAND" ]]; then
 	commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
 else

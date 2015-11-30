@@ -17,7 +17,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014-2015 RIKEN AICS. All rights reserved
 
-version="0.41"
+version="0.42socat_exec01"
 echo "$0 v$version"
 
 # Initialization
