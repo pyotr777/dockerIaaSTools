@@ -30,11 +30,11 @@ debug=1
 # $format
 permitOption() {
 	option=$1
-	if grep -qE "$option\s+(no)*" "$ssh_conf"; then
-		ERROR=$( { sed -ri "s/\s*$option\s+(no)*\s*/$option yes/" "$ssh_conf" > /dev/null; } 2>&1 )
+	if grep -qE "^\s*$option\s+(yes|no)+" "$ssh_conf"; then
+		ERROR=$( { sed -ri "s/\s*$option\s+(yes|no)+\s*/$option yes/" "$ssh_conf" > /dev/null; } 2>&1 )
 		if [ -n "$ERROR" ]; then
 			# OSX version
-			sed -E -i '' "s/[[:space:]]*$option[[:space:]]+(no)*[[:space:]]*/$option yes/" "$ssh_conf"
+			sed -E -i '' "s/[[:space:]]*$option[[:space:]]+(yes|no)+[[:space:]]*/$option yes/" "$ssh_conf"
 		fi		
 	else 
 		printf "\n%s\n" "$option yes" >> "$ssh_conf"
