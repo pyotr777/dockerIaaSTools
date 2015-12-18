@@ -17,7 +17,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2014-2015 RIKEN AICS. All rights reserved
 
-version="0.42socat_exec01"
+version="0.42socat_exec02"
 echo "$0 v$version"
 
 # Initialization
@@ -182,6 +182,7 @@ echo "$username $username" >> $usersfile
 useradd -m $username
 usermod -a -G $diaasgroup $username
 usermod -a -G ssh $username
+usermod -a -G $dockergroup $username
 echo "User $username created on host"
 
 if [ ! -d "/home/$username/.ssh" ]

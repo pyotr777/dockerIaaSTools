@@ -11,7 +11,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (c) 2014-2015 RIKEN AICS.
 
-version="0.42socat_exec01"
+version="0.42socat_exec02"
 
 if [[ -z $1 ]]
 	then
