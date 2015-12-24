@@ -17,7 +17,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2015 RIKEN AICS. All rights reserved
 
-version="0.41"
+version="0.42"
 debug=""
 
 usage="Usage:\nconnect.sh -u <username> -h <server address> -p <server port number> \

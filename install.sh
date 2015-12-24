@@ -15,7 +15,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.41"
+version="0.42"
 debug=1
 
 
@@ -54,8 +54,9 @@ mountfile="$tablesfolder/mounttable.txt"
 usersfile="$tablesfolder/userstable.txt"
 dockerhost="localhost"
 dockerport="4243"
-dockercommand="docker -H $dockerhost:$dockerport"
+dockercommand="docker"
 diaasgroup="diaasgroup"
+dockergroup="docker"
 ssh_conf="/etc/ssh/sshd_config"
 ssh_backup="${ssh_conf}.diaas_back"
 sshd_pam="/etc/pam.d/sshd"
@@ -68,7 +69,7 @@ format="%-50s %-20s\n"
 
 # Array for saving variables to configuration file
 config_vars=(forcecommand forcecommandlog tablesfolder mountfile usersfile \
-	dockerhost dockerport dockercommand diaasgroup ssh_conf \
+	dockerhost dockerport dockercommand diaasgroup dockergroup ssh_conf \
 	ssh_backup sshd_pam format install_path config_file)
 
 read -rd '' usage << EOF
@@ -117,6 +118,19 @@ if [[ $? -gt 1 ]]; then
 	apt-get install -y jq
 fi
 
+# Check socat install
+socat &>/dev/null
+if [[ $? -gt 1 ]]; then
+	echo -n " socat is required for Docker IaaS Tools. Install socat? [y/n]"
+	read -n 1 install
+	printf "\n"
+	if [[ $install != "y" ]]; then
+		printf "Bye!\n"
+		exit 1
+	fi
+	apt-get install -y socat
+fi
+
 # Check that port is not used
 read pname pid junk <<< "$(sudo lsof -i TCP:$dockerport | grep -v COMMAND)"
 if [[ -n "$pid" ]]; then
@@ -132,18 +146,6 @@ for var in "${config_vars[@]}"; do
 done
 printf "$format" "$diaasconfig" "saved"
 
-# Start socat proxy
-./socat-start.sh savepid
-if [ ! -f socat.pid ]; then
-	printf "$format"  "socat" "failed"
-	exit 1
-fi
-socatpid=$(cat socat.pid)
-if [[ -n "$socatpid" ]]; then
-	echo "socatpid=\"$socatpid\"" >> $diaasconfig
-fi
-# Delete file with socat PID
-rm socat.pid
 
 dockerimagesline=$($dockercommand images 2>/dev/null | grep IMAGE | wc -l)
 if [[ $dockerimagesline -eq 0 ]]; then
