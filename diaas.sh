@@ -13,12 +13,12 @@
 version="0.42"
 
 # Will be substituted with path to cofig file during installation
-source diaasconfig
+source /home/peter/dockerIaaSTools/diaas_installed.conf
 
 # mount table file lists folders, that should be mount on container startup (docker run command)
 # file format:
 # username@mountcommand1;mountcommand2;...
-# mountcommand format:
+# mountcommand format: 
 # [host-dir]:[container-dir]:[rw|ro]
 
 # Verbose logs for debugging
@@ -29,13 +29,13 @@ container_started=0
 
 # FUNCTIONS
 
-# Return host-side port number mapped to the port
+# Return host-side port number mapped to the port 
 getPort() {
     cont_port=""
     if [ -z $1 ]
     then
         cont_port="22/tcp"
-    else
+    else 
         cont_port=$1
     fi
 
@@ -58,10 +58,10 @@ getFreePort() {
     test=$(netstat -V 2>/dev/null)
 
     if [[ $test == *"net-tools"* ]]
-    then
+    then    
         # Array of used port numbers
         used=( $(netstat -n -t | grep : | awk '{ print $4 }' |  awk -F ':' '{ print $2 }') )
-    else
+    else 
         used4=( $(netstat -n -p tcp | grep "tcp4" | awk '{ print $4 }' |  awk -F '.' '{ print $5 }') )
         used6=( $(netstat -n -p tcp | grep "tcp6" | awk '{ print $4 }' |  awk -F '.' '{ print $2 }') )
         used=( "${used4[@]}" "${used6[@]}" )
@@ -73,7 +73,7 @@ getFreePort() {
         for uport in "${used[@]}"
         do
             if [ "$port" == "$uport" ]
-            then
+            then 
                 isused="true"
                 break
             fi
@@ -81,7 +81,7 @@ getFreePort() {
         if [ "$isused" == "false" ]
         then
             echo "$port"
-            break
+            break           
         fi
     done
 }
@@ -92,15 +92,15 @@ getFreePort() {
 # like this: "-v hostdir:contdir -v hostdir:contdir:ro"
 getMounts() {
     mount_command=""
-    mounts=$(grep $1 $mountfile | awk -F"@" '{ print $2 }')
-    if [ -z "$mounts" ]; then
+    mounts=$(grep $1 $mountfile | awk -F"@" '{ print $2 }')  
+    if [ -z "$mounts" ]; then 
         echo ""
         exit 0
-    fi
+    fi      
     IFS=';' read -ra mounts_arr <<< "$mounts"
     for mnt in "${mounts_arr[@]}"; do
         mount_command="$mount_command-v=$mnt "
-    done
+    done                   
     echo $mount_command
 }
 
@@ -113,7 +113,7 @@ getContainerHome() {
 
 # Return destination path, relative to home directory
 dirs=()
-getPath() {
+getPath() { 
     currentdir=$( IFS=$'/'; echo "${dirs[*]}" )
     echo "$currentdir/$1"
 }
@@ -128,7 +128,7 @@ addPath() {
 delPath() {
     n=${#dirs[@]}
     p=$((n-1))
-    unset dirs[$p]
+    unset dirs[$p]  
 }
 
 # Parse line with path and mode
@@ -158,7 +158,7 @@ parseLogLine() {
             copyfile="$host_tmp_dir/$path"
             homedir=$(getContainerHome)
             echo "COPY $mod:$copyfile->$cont_name:$homedir/$path" >> $forcecommandlog
-            $dockercommand cp $copyfile "$cont_name:$homedir/$path"
+            $dockercommand cp $copyfile "$cont_name:$homedir/$path"         
             $dockercommand exec $cont_name chmod $mod $homedir/$path
             $dockercommand exec $cont_name ls -l $homedir/$path >> $forcecommandlog
             contents=""
@@ -173,12 +173,12 @@ parseLogLine() {
             eval $(pathmode "$line")
             path=$(getPath $path)
             echo "mod $mod $homedir/$path" >> $forcecommandlog
-        elif [[ $line =~ ^D ]]; then
+        elif [[ $line =~ ^D ]]; then 
             # Have directory
             # Create new directory and set its permissions
             eval $(pathmode "$line")
             addPath "$path"  # Add new directory to dirs array
-            path=$(getPath)
+            path=$(getPath) 
             $dockercommand exec $cont_name mkdir -p $homedir/$path
             $dockercommand exec $cont_name chmod $mod $homedir/$path
             echo "Created dir $homedir/$path with $mod in container"  >> $forcecommandlog
@@ -194,7 +194,7 @@ parseLogLine() {
         else
             contents="$contents"$'\n'"$line"
         fi
-    fi
+    fi  
 }
 
 if [ ! -w $forcecommandlog ];then
@@ -235,10 +235,10 @@ if [ $debuglog -eq 1 ]; then
 fi
 
 # Check SSH_ORIGINAL_COMMAND
-if [ "$SSH_ORIGINAL_COMMAND" = commit ]; then
+if [ "$SSH_ORIGINAL_COMMAND" = commit ]; then 
     if [ $debuglog -eq 1 ]; then
         echo "Commit container $cont_name" >> $forcecommandlog
-    fi
+    fi    
     command="$dockercommand commit $cont_name $image"
     $command
     exit 0
@@ -247,7 +247,7 @@ fi
 if [ "$SSH_ORIGINAL_COMMAND" = stop ]; then
     if [ $debuglog -eq 1 ]; then
         echo "Stop container $cont_name" >> $forcecommandlog
-    fi
+    fi 
     command="$dockercommand kill $cont_name"
     $command
     exit 0
@@ -256,7 +256,7 @@ fi
 if [ "$SSH_ORIGINAL_COMMAND" = remove ]; then
     if [ $debuglog -eq 1 ]; then
         echo "Remove container $cont_name" >> $forcecommandlog
-    fi
+    fi 
     command="$dockercommand rm $cont_name"
     $command
     exit 0
@@ -265,7 +265,7 @@ fi
 if [ "$SSH_ORIGINAL_COMMAND" = port ]; then
     if [ $debuglog -eq 1 ]; then
         echo "Return container $cont_name ssh port number" >> $forcecommandlog
-    fi
+    fi 
     PORT=$(getPort "22/tcp")
     echo $PORT
     exit 0
@@ -274,7 +274,7 @@ fi
 if [ "$SSH_ORIGINAL_COMMAND" = freeport ]; then
     if [ $debuglog -eq 1 ]; then
         echo "Return free server port number" >> $forcecommandlog
-    fi
+    fi 
     PORT=$(getFreePort)
     echo $PORT
     exit 0
@@ -300,7 +300,7 @@ fi
 if [ -z "$ps" ]
 then
     psa=$(eval "$dockercommand ps -a" | grep "$cont_name ")
-    if [ "$psa" ]
+    if [ "$psa" ] 
     then
         if [ $debuglog -eq 1 ]
             then
@@ -314,7 +314,7 @@ then
         fi
         container_action="start"
         sleep 1
-    else
+    else 
         if [ $debuglog -eq 1 ]; then
             echo "No container. Run from image." >> $forcecommandlog
         fi
@@ -336,18 +336,18 @@ then
         container_action="run"
         sleep 1
     fi
-
+    
     #   get running container port number
     PORT=$(getPort "22/tcp")
     sshcommand=( ssh -p "$PORT" -A -o StrictHostKeyChecking=no root@localhost )
-    echo "started container with open port $PORT" >> $forcecommandlog
+    echo "started container with open port $PORT" >> $forcecommandlog    
 fi
 
 
 
 # get running container port number
 if [ -z "$PORT" ]
-then
+then    
     PORT=$(getPort "22/tcp")
     sshcommand=( ssh -p "$PORT" -A -o StrictHostKeyChecking=no root@localhost )
 fi
@@ -380,33 +380,43 @@ if [[ "$SCP" == "1" ]]; then
         echo "Destination path is $ipath" >> $forcecommandlog
         if [[ "${ipath:0:1}" == "/" ]]; then
             # Absolute path
-            homedir=""
+            homedir="" 
         else
             # Relative path
             homedir="$(getContainerHome)/"
         fi
-        command="$dockercommand exec -i $cont_name $short_scp_commad $homedir$ipath"
+        socat_command="$dockercommand exec -i $cont_name $short_scp_commad $homedir$ipath"
+        echo "$socat_command" > $socat_tmpfile
+        chmod +x $socat_tmpfile
+        command="socat - SYSTEM:$socat_tmpfile,reuseaddr"
         echo "Executing $command" >> $forcecommandlog
+        echo "$socat_tmpfile: $(cat $socat_tmpfile)" >> $forcecommandlog
         $command 2>> $forcecommandlog
+        rm $socat_tmpfile
     else
         echo "Source path is $ipath" >> $forcecommandlog
         if [[ "${ipath:0:1}" == "/" ]]; then
             # Absolute path
-            homedir=""
+            homedir="" 
         else
             # Relative path
             homedir="$(getContainerHome)/"
         fi
-        command="$dockercommand exec -i $cont_name $short_scp_commad $homedir$ipath"
+        socat_command="$dockercommand exec -i $cont_name $short_scp_commad $homedir$ipath"
+        echo "$socat_command" > $socat_tmpfile
+        chmod +x $socat_tmpfile
+        command="socat - SYSTEM:$socat_tmpfile,reuseaddr"
         echo "Executing $command" >> $forcecommandlog
+        echo "$socat_tmpfile: $(cat $socat_tmpfile)" >> $forcecommandlog
         $command 2>> $forcecommandlog
+        rm $socat_tmpfile            
     fi
     commands=()
-    #rm -rf $host_tmp_dir
+    #rm -rf $host_tmp_dir    
 elif [[ -n "$SSH_ORIGINAL_COMMAND" ]]; then
     commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
 else
-    # Interactive login
+    # Interactive login 
     sshcommand=( ssh -p "$PORT" -Y -A -o StrictHostKeyChecking=no root@localhost )
     commands=( "${sshcommand[@]}" "$SSH_ORIGINAL_COMMAND" )
 fi

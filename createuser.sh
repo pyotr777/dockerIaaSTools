@@ -182,6 +182,7 @@ echo "$username $username" >> $usersfile
 useradd -m $username
 usermod -a -G $diaasgroup $username
 usermod -a -G ssh $username
+usermod -a -G $dockergroup $username
 echo "User $username created on host"
 
 if [ ! -d "/home/$username/.ssh" ]
