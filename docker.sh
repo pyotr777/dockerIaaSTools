@@ -10,7 +10,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 RIKEN AICS.
 
-version="0.42"
+version="0.43"
 
 # Will be substituted with path to cofig file during installation
 source diaasconfig

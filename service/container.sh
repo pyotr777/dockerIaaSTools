@@ -7,7 +7,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 Riken AICS. All rights reserved.
 
-version="0.42"
+version="0.43"
 
 # Output to separate log files for every ssh connection
 separatelog=0

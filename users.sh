@@ -5,7 +5,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.42"
+version="0.43"
 
 eval $(./install.sh -c)
 if [ ! -f "$diaasconfig" ]; then
