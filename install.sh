@@ -15,7 +15,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.42socat_exec03"
+version="0.42"
 debug=1
 
 
