@@ -7,7 +7,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 Riken AICS. All rights reserved.
 
-version="0.42socat_exec02"
+version="0.42socat_exec03"
 
 # Output to separate log files for every ssh connection
 separatelog=0

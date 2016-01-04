@@ -6,7 +6,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.42socat_exec02"
+version="0.42socat_exec03"
 debug=1
 
 if [[ $(id -u) != "0" ]]; then

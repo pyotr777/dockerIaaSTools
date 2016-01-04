@@ -10,7 +10,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 RIKEN AICS.
 
-version="0.42socat_exec02"
+version="0.42socat_exec03"
 
 # Will be substituted with path to cofig file during installation
 source /home/peter/dockerIaaSTools/diaas_installed.conf
