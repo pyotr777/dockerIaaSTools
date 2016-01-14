@@ -80,6 +80,7 @@ Options:
 	-c print path to the file with configuration variables and exit. 
 	Can be used with \"eval \$(./install.sh -c)\" command. 
 	This option does not require root privileges.
+	-y assume answer "yes" to all questions to user during install.
 
 Docker IaaS tools requirements: bash, Docker, socat, jq.
 Required OS: Ubuntu, Debian.
@@ -95,6 +96,8 @@ fi
 if [[ "$1" == "-c" ]]; then 
 	echo "export diaasconfig=\"$(pwd)/$diaasconfig\""
 	exit 0
+elif [[ "$1" == "-y" ]]; then
+	AUTOINSTALL=1
 elif [[ -n "$1" ]]; then
 	printf "%s" "$usage"
 	exit 1
@@ -108,12 +111,14 @@ fi
 # Check jq install
 jq &>/dev/null
 if [[ $? -gt 1 ]]; then
-	echo -n " jq is required for Docker IaaS Tools. Install jq? [y/n]"
-	read -n 1 install
-	printf "\n"
-	if [[ $install != "y" ]]; then
-		printf "Bye!\n"
-		exit 1
+	if [[ -z "$AUTOINSTALL" ]]; then
+		echo -n " jq is required for Docker IaaS Tools. Install jq? [y/n]"
+		read -n 1 install
+		printf "\n"
+		if [[ $install != "y" ]]; then
+			printf "Bye!\n"
+			exit 1
+		fi
 	fi
 	apt-get install -y jq
 fi
@@ -121,12 +126,14 @@ fi
 # Check socat install
 socat &>/dev/null
 if [[ $? -gt 1 ]]; then
-	echo -n " socat is required for Docker IaaS Tools. Install socat? [y/n]"
-	read -n 1 install
-	printf "\n"
-	if [[ $install != "y" ]]; then
-		printf "Bye!\n"
-		exit 1
+	if [[ -z "$AUTOINSTALL" ]]; then
+		echo -n " socat is required for Docker IaaS Tools. Install socat? [y/n]"
+		read -n 1 install
+		printf "\n"
+		if [[ $install != "y" ]]; then
+			printf "Bye!\n"
+			exit 1
+		fi
 	fi
 	apt-get install -y socat
 fi
@@ -162,12 +169,14 @@ fi
 # Group diaasgroup - create if not exists
 
 if [ -z "$(cat /etc/group | grep $diaasgroup:)" ]; then
-	echo -n " Create group $diaasgroup? [y/n]"
-	read -n 1 creategroup
-	printf "\n"
-	if [[ $creategroup != "y" ]]; then
-		echo "Bye!"
-		exit 0
+	if [[ -z "$AUTOINSTALL" ]]; then
+		echo -n " Create group $diaasgroup? [y/n]"
+		read -n 1 creategroup
+		printf "\n"
+		if [[ $creategroup != "y" ]]; then
+			echo "Bye!"
+			exit 0
+		fi
 	fi
 	groupadd "$diaasgroup"
 	printf "$format" "Group $diaasgroup" "created"
@@ -181,9 +190,15 @@ if [[ $? -eq 1 ]]; then
 	echo "Error: Could not copy file $(pwd)/docker.sh to $forcecommand" 1>&2
 	exit 1
 fi
+printf "$format" "Copy $forcecommand" "OK"
+
+# Add exec permission to diaas group
+chown :$diaasgroup $forcecommand
+chmod g+x $forcecommand
+printf "$format" "$forcecommand permissions" "set"
+
 # Replace filename with full path to config file in docker.sh
 sed -ri "s#source diaasconfig#source $(pwd)/$diaasconfig#" "$forcecommand"
-printf "$format" "Copy $forcecommand" "OK"
 
 if [ ! -f "$forcecommandlog" ]; then
 	touch $forcecommandlog
@@ -271,9 +286,11 @@ if [ -f "$ssh_conf" ]; then
 		echo "----------"
 		echo "Fragment of your $ssh_conf file:"
 		grep -C 4 "$forcecommand" "$ssh_conf"
-		echo -n " Please confirm [press any key]"
-		read -n 1 foo
-		printf "\n"
+		if [[ -z "$AUTOINSTALL" ]]; then
+			echo -n " Please confirm [press any key]"
+			read -n 1 foo
+			printf "\n"
+		fi
 	else
 		printf "\n%s\n\t%s\n" "Match Group $diaasgroup" "ForceCommand $forcecommand" >> "$ssh_conf"
 		printf "$format" "$ssh_conf" "ForceCommand added"
@@ -287,13 +304,17 @@ else
 	exit 1
 fi
 
-echo -n " Restart sshd? [y/n]"
-read -n 1 restartssh
-printf "\n"
-if [[ $restartssh == "y" ]]; then
-	service ssh restart			
+if [[ -z "$AUTOINSTALL" ]]; then
+	echo -n " Restart sshd? [y/n]"
+	read -n 1 restartssh
+	printf "\n"
+	if [[ $restartssh == "y" ]]; then
+		service ssh restart			
+	else
+		printf "Please, restart sshd later with:\n\$ sudo service ssh restart\n"
+	fi
 else
-	printf "Please, restart sshd later with:\n\$ sudo service ssh restart\n"
+	printf "Please, restart sshd with:\n\$ sudo service ssh restart\n"
 fi
 
 echo "Installation comlete."

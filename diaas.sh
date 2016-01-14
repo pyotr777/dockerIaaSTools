@@ -132,7 +132,7 @@ delPath() {
 }
 
 # Parse line with path and mode
-# Sample line: D0.45 0 tmp_dir
+# Sample line: D0744 0 tmp_dir
 pathmode() {
     read -ra pathmode <<< $(echo "$1")
     mod="${pathmode[0]}"

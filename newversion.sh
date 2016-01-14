@@ -16,7 +16,7 @@ fi
 newversion=$1
 echo "New version $newversion"
 if grep -q GNU <<<$(sed --version 2>/dev/null); then  
-	find . -name "*.sh" | xargs sed -ri "s/$version[a-z0-9]*/$newversion/" 
+	find . -name "*.sh" | xargs sed -i "s/$version[a-z0-9]*/$newversion/" 
 else
-	find . -name "*.sh" | xargs sed -Ei '' "s/$version[a-z0-9]*/$newversion/" 
+	find . -name "*.sh" | xargs sed -i '' "s/$version[a-z0-9]*/$newversion/" 
 fi
