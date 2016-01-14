@@ -3,50 +3,47 @@
 # Synchronized decrementation of a value in file
 #
 # Created by Bryzgalov Peter
-# Copyright (c) 2013-2015 Riken AICS. All rights reserved
+# Copyright (c) 2013-2016 Riken AICS. All rights reserved
 
-version="0.43"
+version="0.45"
 
 echo "$0 v$version"
 
 # This will be replaced by createuset.sh
 initvariables
 
-if [ $# -lt 2 ]
-then
-    echo 'Need file names of counter and nostop files.' >&2
-    echo "Usage:" >&2
-    echo "synchro_decrement.sh counter_filename nostop_filename log_filename" >&2
-    exit 1
+log_file=${basename}.log
+
+if [ $1 ]; then
+	counter_file=$1
 fi
-
-counter_file=$1
-stop_file=$2
-
-if [ $3 ]
-	then
+if [ $2 ]; then
+	stop_file=$2
+fi
+if [ $3 ]; then
 	log_file=$3
 fi
+echo "[$counter_file $stop_file $log_file]"
 
 # Open descriptor for reading
-exec 20<$1
+exec 20<$counter_file
 
 echo "-$PPID $(date +'%Y-%m-%d %H:%M:%S.%N') ($version)" >> $log_file
 
 # Exclusively lock file
-flock -x 20 || (echo "Cannot lock $1"; exit 1;)
-COUNTER=$(cat $1);
+flock -x 20 || (echo "Cannot lock $counter_file"; exit 1;)
+COUNTER=$(cat $counter_file);
 if [ -z "$COUNTER" ]
 then
     COUNTER=1
 fi
-echo $(($COUNTER - 1)) >$1
+echo $(($COUNTER - 1)) >$counter_file
 # Unlock file
 flock -u 20
-echo "-$PPID  $(date +'%Y-%m-%d %H:%M:%S.%N') COUNTER=$(cat $1)" >> $log_file #read from file
+echo "-$PPID $(date +'%Y-%m-%d %H:%M:%S.%N') COUNTER=$(cat $counter_file)" >> $log_file #read from file
 
 # Start dockerwatch.sh
-dockerwatch=($servdir/dockerwatch.sh "$counter_file" "$stop_file")
-echo "-$PPID starting: ${dockerwatch[@]}" >> $log_file
-eval "nohup ${dockerwatch[@]}" >> $log_file 2>&1 &
+dockerwatch="$servdir/dockerwatch.sh"
+echo "-$PPID starting: $dockerwatch" >>$log_file
+$dockerwatch >>$log_file 2>&1
 echo "-$PPID quit."

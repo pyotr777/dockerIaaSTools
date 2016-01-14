@@ -17,7 +17,7 @@
 #  Created by Peter Bryzgalov
 #  Copyright (C) 2015 RIKEN AICS. All rights reserved
 
-version="0.43"
+version="0.45"
 
 if [[ $debug ]]; then
 	echo "$@"

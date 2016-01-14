@@ -2,16 +2,16 @@
 
 # Call to stop user container immediately
 #  
-# Created by Bryzgalov Peter on 2014/01/31
+# Created by Bryzgalov Peter
 # Copyright (c) 2013-2015 Riken AICS. All rights reserved
 
-version="0.34a01"
+version="0.45"
 
 # This will be replaced by createuset.sh
 initvariables
 
 echo "Stopping container"
-echo "0" > counter_file
-echo "0" > stop_file
+echo "0" > $counter_file
+echo "0" > $stop_file
 
 kill 1

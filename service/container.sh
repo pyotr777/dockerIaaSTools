@@ -4,10 +4,10 @@
 # Call connection counters (increment-decrement).
 # Stop container when connection counter is 0.
 #
-# Created by Peter Bryzgalov
-# Copyright (c) 2013-2015 Riken AICS. All rights reserved.
+# Created by Bryzgalov Peter 
+# Copyright (c) 2013-2016 Riken AICS. All rights reserved.
 
-version="0.43"
+version="0.45"
 
 # Output to separate log files for every ssh connection
 separatelog=0
@@ -74,8 +74,7 @@ fi
 # After user commands exit,
 # decrement connection counter
 
-commands=( $servdir/synchro_decrement.sh "$counter_file" "$stop_file" "$log_file")
-"${commands[@]}" >> $log_file 2>&1 
+nohup $servdir/synchro_decrement.sh >>$log_file 2>&1 & 
 
 echo "< $$ $(date +'%Y-%m-%d %H:%M:%S.%N')" >> $log_file
 echo " " >> $log_file

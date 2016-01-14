@@ -10,7 +10,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 RIKEN AICS.
 
-version="0.43"
+version="0.45"
 
 # Will be substituted with path to cofig file during installation
 source /home/peter/dockerIaaSTools/diaas_installed.conf
@@ -132,7 +132,7 @@ delPath() {
 }
 
 # Parse line with path and mode
-# Sample line: D0744 0 tmp_dir
+# Sample line: D0.45 0 tmp_dir
 pathmode() {
     read -ra pathmode <<< $(echo "$1")
     mod="${pathmode[0]}"

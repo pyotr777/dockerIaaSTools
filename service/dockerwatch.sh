@@ -12,14 +12,16 @@
 # Command line value take precedence.
 #
 # Created by Bryzgalov Peter
-# Copyright (c) 2013-2015 Riken AICS. All rights reserved
+# Copyright (c) 2013-2016 Riken AICS. All rights reserved
 
-version="0.43"
-
-echo "$0 v$version"
+version="0.45"
 
 # This will be replaced by createuset.sh
 initvariables
+
+logfile=$basename.log
+
+echo "$0 v$version" >> $logfile
 
 timeout=5
 eval $(cat $container_config)
@@ -41,9 +43,9 @@ fi
 
 
 stat=($(</proc/$$/stat))    # create an array
-pparent=${stat[4]}
+ppid=${stat[4]}
 
-echo "/$pparent $(date +'%Y-%m-%d %H:%M:%S.%N') dockerwatch.sh ($version),timeout $timeout."
+echo "/$ppid dw ($version),timeout $timeout."
 
 sleep $timeout
 
@@ -51,31 +53,30 @@ sleep $timeout
 if [ -a $stop_file ]
 then
     NOSTOP=$(cat $stop_file)
-    echo "/dw nostop: $NOSTOP"
+    echo "/$ppid dw nostop: $NOSTOP"
 
     # If "nostop" file has 1, exit dockerwatch
     if [ $NOSTOP -gt "0" ]
     then
-        echo "/dw Nostop state"
+        echo "/$ppid Nostop state"
         exit 0
     fi
 fi
 
 # Open connections counter file for reading
-exec 20<$1
+exec 20<$counter_file
 # Lock file with shared lock
 flock -x 20
-COUNTER=$(cat $1)
-echo "/$pparent $(date +'%Y-%m-%d %H:%M:%S.%N') dw counter: $COUNTER"
+COUNTER=$(cat $counter_file)
+# If unlock is not called, file is unlocked automatically after process get killed.
+flock -u 20
+echo "/$ppid dw counter: $COUNTER"
 
 # If connection counter is 0 or less, stop container
 if [ $COUNTER -le "0" ]
 then
     # Stop container
-    echo "/$pparent $(date +'%Y-%m-%d %H:%M:%S.%N') dw Stopping container"
+    echo "/$ppid $(date +'%Y-%m-%d %H:%M:%S.%N') dw Stopping container"
     echo " "
     kill 1
 fi
-
-# If unlock file is not called, file is unlocked automatically after process get killed.
-flock -u 20
