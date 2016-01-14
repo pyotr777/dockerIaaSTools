@@ -45,5 +45,5 @@ echo "-$PPID $(date +'%Y-%m-%d %H:%M:%S.%N') COUNTER=$(cat $counter_file)" >> $l
 # Start dockerwatch.sh
 dockerwatch="$servdir/dockerwatch.sh"
 echo "-$PPID starting: $dockerwatch" >>$log_file
-$dockerwatch >>$log_file 2>&1
+$dockerwatch >>$log_file 2>>$log_file
 echo "-$PPID quit."
