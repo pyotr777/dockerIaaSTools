@@ -5,7 +5,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2016 Riken AICS. All rights reserved
 
-version="0.45"
+version="0.45b"
 
 echo "$0 v$version"
 
@@ -23,7 +23,7 @@ fi
 if [ $3 ]; then
 	log_file=$3
 fi
-echo "[$counter_file $stop_file $log_file]"
+echo "[$counter_file $stop_file $log_file]" >> $log_file
 
 # Open descriptor for reading
 exec 20<$counter_file
