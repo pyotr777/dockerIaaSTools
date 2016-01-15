@@ -51,8 +51,8 @@ if [ $users -ge 1 ]; then
 			read -ra userarray <<< "$userline"
 			deleteUser ${userarray[0]}
 		done
-	fi
-	printf "$format" "Users deleted" "OK"
+		printf "$format" "Users deleted" "OK"
+	fi	
 fi
 
 # Group 
@@ -60,12 +60,10 @@ if [ -n "$(cat /etc/group | grep "$diaasgroup:")" ]; then
 	echo -n " Remove $diaasgroup? [y/n]"
 	read -n 1 rmgroup
 	printf "\n"
-	if [[ $rmgroup != "y" ]]; then
-		printf "Bye!\n"
-		exit 0
+	if [[ $rmgroup == "y" ]]; then
+		groupdel "$diaasgroup"
+		printf "$format" "Group $diaasgroup"  "deleted"
 	fi
-	groupdel "$diaasgroup"
-	printf "$format" "Group $diaasgroup"  "deleted"
 fi
 
 # Remove files
