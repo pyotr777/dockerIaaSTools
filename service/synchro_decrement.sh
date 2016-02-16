@@ -5,7 +5,7 @@
 # Created by Bryzgalov Peter
 # Copyright (c) 2013-2016 Riken AICS. All rights reserved
 
-version="0.45b"
+version="0.45c"
 
 echo "$0 v$version"
 
@@ -31,7 +31,7 @@ exec 20<$counter_file
 echo "-$PPID $(date +'%Y-%m-%d %H:%M:%S.%N') ($version)" >> $log_file
 
 # Exclusively lock file
-flock -x 20 || (echo "Cannot lock $counter_file"; exit 1;)
+flock -x 20 || { echo "Cannot lock $counter_file"; exit 1; }
 COUNTER=$(cat $counter_file);
 if [ -z "$COUNTER" ]
 then

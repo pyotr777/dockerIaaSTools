@@ -23,7 +23,7 @@ exec 20<$1
 echo "+$PPID $(date +'%Y-%m-%d %H:%M:%S.%N') ($version)"
 
 # Exclusively lock file
-flock -x 20 || (echo "Cannot lock $1"; exit 1;)
+flock -x 20 || { echo "Cannot lock $1"; exit 1; }
 COUNTER=$(cat $1);
 if [ -z "$COUNTER" ]
 then
