@@ -7,7 +7,7 @@
 # Created by Bryzgalov Peter 
 # Copyright (c) 2013-2016 Riken AICS. All rights reserved.
 
-version="0.45b"
+version="0.45c"
 
 # Output to separate log files for every ssh connection
 separatelog=0
@@ -75,7 +75,7 @@ fi
 # decrement connection counter
 
 echo "starting $servdir/synchro_decrement.sh" >> $log_file
-nohup $servdir/synchro_decrement.sh & 
+nohup $servdir/synchro_decrement.sh >>$log_file 2>&1 & 
 sleep 2  # If this script dies before the child process started, child is never started.
 
 echo "< $$ $(date +'%Y-%m-%d %H:%M:%S.%N')" >> $log_file
