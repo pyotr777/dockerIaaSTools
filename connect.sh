@@ -154,6 +154,8 @@ free_port="$(ssh $SSH_PARAMETERS freeport 2>/dev/null)"
 
 echo "SSH server port: $free_port"
 
+
+#TODO Maybe enough to provide 172.17.42.1 as the bind address?
 command="ssh $SSH_PARAMETERS -R 0.0.0.0:$free_port:localhost:22 -N"
 if [ -n "$debug" ]; then
 	echo "tunnel command: $command"

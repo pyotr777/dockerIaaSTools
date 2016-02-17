@@ -290,6 +290,8 @@ container_action=""
 # If user container name not in the list,
 # start user container,
 # get SSH port external number
+
+# TODO Check that container for user nic would not get confused with users panic container! 
 ps=$(eval "$dockercommand ps" | grep "$cont_name ")
 if [ "$ps" ] && [ $debuglog -eq 1 ]
 then
@@ -299,6 +301,7 @@ fi
 
 if [ -z "$ps" ]
 then
+    # TODO Check that container names do not get confused
     psa=$(eval "$dockercommand ps -a" | grep "$cont_name ")
     if [ "$psa" ]
     then
