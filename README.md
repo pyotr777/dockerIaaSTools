@@ -170,7 +170,7 @@ Called by container.sh and stop.sh to stop container in due time - when all acti
 Utility for mounting user local directories into user container on the server and executing commands inside the container. Must be executed on user local computer.
 Whithout remote command can be used to login to the container with X11 forwarding. This makes possible to use GUI applications inside the container. 
 
-Usage: ```connect.sh -u <username> -h <server address> -p <local directory to mount> -i <path to ssh-key> -m <remote command>```
+Usage: ```connect.sh -u <username> -h <server address> -p <server port number> -i <path to ssh-key> -l <local directory to mount> -m <remote command>```
 
 ##### Requires:
 	SSHFS in container 
