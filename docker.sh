@@ -10,7 +10,7 @@
 # Created by Peter Bryzgalov
 # Copyright (c) 2013-2015 RIKEN AICS.
 
-version="0.45"
+version="0.46a"
 
 # Will be substituted with path to cofig file during installation
 source diaasconfig
@@ -28,6 +28,17 @@ debuglog=1
 container_started=0
 
 # FUNCTIONS
+
+# Return status of container
+getContainerState() {
+    if [ -n $1 ]; then
+        name=$1
+    else
+        name=$USER
+    fi
+    state=$($dockercommand inspect $name | jq .[0].State.Running)
+    echo $state
+}
 
 # Return host-side port number mapped to the port
 getPort() {
@@ -292,18 +303,12 @@ container_action=""
 # get SSH port external number
 
 # TODO Check that container for user nic would not get confused with users panic container! 
-ps=$(eval "$dockercommand ps" | grep "$cont_name ")
-if [ "$ps" ] && [ $debuglog -eq 1 ]
+state=$(getContainerState "$cont_name")
+if [ "$state" == "true" ] && [ $debuglog -eq 1 ]
 then
     echo "Container is running" >> $forcecommandlog
-fi
-
-
-if [ -z "$ps" ]
-then
-    # TODO Check that container names do not get confused
-    psa=$(eval "$dockercommand ps -a" | grep "$cont_name ")
-    if [ "$psa" ]
+else
+    if [ "$state" == "false" ]
     then
         if [ $debuglog -eq 1 ]
             then

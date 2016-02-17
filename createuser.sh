@@ -134,7 +134,7 @@ FROM $image
 EXPOSE 22
 ENV DEBIAN_FRONTEND noninteractive
 RUN locale-gen en_US.UTF-8
-RUN apt-get install -y ssh
+RUN apt-get update && apt-get install -y ssh
 RUN mkdir -p /var/run/sshd
 
 # Disable pam_loginuid to correct SSH login bug
